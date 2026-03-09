@@ -1,0 +1,125 @@
+@import "tailwindcss";
+
+/* ============================================
+   THEATRUM — Custom Theme
+   Luxury editorial aesthetic for theater events
+   ============================================ */
+
+@theme {
+  /* Colors */
+  --color-base: #0a0f1a;
+  --color-base-light: #111827;
+  --color-base-lighter: #1a2236;
+  --color-surface: #141b2d;
+  --color-surface-hover: #1e2740;
+  --color-gold: #c9a84c;
+  --color-gold-light: #dbc06a;
+  --color-gold-dark: #a8893d;
+  --color-gold-muted: rgba(201, 168, 76, 0.15);
+  --color-text-primary: #f1efe9;
+  --color-text-secondary: #9ca3af;
+  --color-text-muted: #6b7280;
+  --color-accent-red: #e74c3c;
+  --color-accent-green: #2ecc71;
+  --color-accent-blue: #3b82f6;
+  --color-border: rgba(201, 168, 76, 0.12);
+  --color-border-strong: rgba(201, 168, 76, 0.25);
+  --color-overlay: rgba(0, 0, 0, 0.6);
+
+  /* Font families */
+  --font-display: 'Playfair Display', Georgia, 'Times New Roman', serif;
+  --font-body: 'DM Sans', system-ui, sans-serif;
+
+  /* Breakpoints */
+  --breakpoint-sm: 640px;
+  --breakpoint-md: 1024px;
+  --breakpoint-lg: 1280px;
+  --breakpoint-xl: 1440px;
+}
+
+/* ============================================
+   Base Styles
+   ============================================ */
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: var(--font-body);
+  background-color: var(--color-base);
+  color: var(--color-text-primary);
+  line-height: 1.6;
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+#root {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ============================================
+   Typography
+   ============================================ */
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-display);
+  font-weight: 600;
+  line-height: 1.2;
+  color: var(--color-text-primary);
+}
+
+/* ============================================
+   Scrollbar
+   ============================================ */
+
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--color-base);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-base-lighter);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-gold-dark);
+}
+
+/* ============================================
+   Selection
+   ============================================ */
+
+::selection {
+  background-color: var(--color-gold);
+  color: var(--color-base);
+}
+
+/* ============================================
+   Noise Texture Overlay (via pseudo-element)
+   ============================================ */
+
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  pointer-events: none;
+  opacity: 0.03;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+  background-repeat: repeat;
+  background-size: 256px 256px;
+}

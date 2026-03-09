@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npx tsc --noEmit)",
+      "Bash(npm run build)",
+      "Bash(node -e \"const z = require\\(''zod''\\); console.log\\(z.ZodType ? ''v3-compat'' : ''v4''\\)\")"
+    ]
+  }
+}
