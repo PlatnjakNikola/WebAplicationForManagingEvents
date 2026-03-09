@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
+import { createBrowserRouter, RouterProvider, Navigate } from 'react-router-dom'
 import { Toaster } from 'react-hot-toast'
 import Layout from './components/Layout'
 import Events from './pages/Events'
@@ -6,9 +6,24 @@ import Theaters from './pages/Theaters'
 import Reservations from './pages/Reservations'
 import Reviews from './pages/Reviews'
 
+const router = createBrowserRouter([
+  {
+    path: '/',
+    element: <Layout />,
+    children: [
+      { index: true, element: <Navigate to="/events" replace /> },
+      { path: 'events', element: <Events /> },
+      { path: 'theaters', element: <Theaters /> },
+      { path: 'reservations', element: <Reservations /> },
+      { path: 'reviews', element: <Reviews /> },
+      { path: '*', element: <Navigate to="/events" replace /> },
+    ],
+  },
+])
+
 function App() {
   return (
-    <BrowserRouter>
+    <>
       <Toaster
         position="bottom-right"
         toastOptions={{
@@ -33,20 +48,8 @@ function App() {
           },
         }}
       />
-      <Routes>
-        <Route element={<Layout />}>
-          {/* User routes */}
-          <Route path="/events" element={<Events />} />
-          <Route path="/theaters" element={<Theaters />} />
-          <Route path="/reservations" element={<Reservations />} />
-          <Route path="/reviews" element={<Reviews />} />
-
-          {/* Default redirect */}
-          <Route path="/" element={<Navigate to="/events" replace />} />
-          <Route path="*" element={<Navigate to="/events" replace />} />
-        </Route>
-      </Routes>
-    </BrowserRouter>
+      <RouterProvider router={router} />
+    </>
   )
 }
 
