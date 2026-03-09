@@ -1,5 +1,10 @@
-import { BrowserRouter } from 'react-router-dom'
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { Toaster } from 'react-hot-toast'
+import Layout from './components/Layout'
+import Events from './pages/Events'
+import Theaters from './pages/Theaters'
+import Reservations from './pages/Reservations'
+import Reviews from './pages/Reviews'
 
 function App() {
   return (
@@ -28,20 +33,19 @@ function App() {
           },
         }}
       />
-      <div className="flex min-h-screen flex-col">
-        <main className="flex-1">
-          <div className="flex items-center justify-center min-h-screen">
-            <div className="text-center">
-              <h1 className="font-display text-5xl md:text-7xl font-bold tracking-tight mb-4">
-                <span className="text-gold">Theatrum</span>
-              </h1>
-              <p className="text-text-secondary text-lg font-body">
-                Kazališni događaji na jednom mjestu
-              </p>
-            </div>
-          </div>
-        </main>
-      </div>
+      <Routes>
+        <Route element={<Layout />}>
+          {/* User routes */}
+          <Route path="/events" element={<Events />} />
+          <Route path="/theaters" element={<Theaters />} />
+          <Route path="/reservations" element={<Reservations />} />
+          <Route path="/reviews" element={<Reviews />} />
+
+          {/* Default redirect */}
+          <Route path="/" element={<Navigate to="/events" replace />} />
+          <Route path="*" element={<Navigate to="/events" replace />} />
+        </Route>
+      </Routes>
     </BrowserRouter>
   )
 }
