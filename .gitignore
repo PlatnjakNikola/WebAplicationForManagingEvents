@@ -1,4 +1,9 @@
-# Logs
+# dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# logs
 logs
 *.log
 npm-debug.log*
@@ -7,16 +12,46 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
-node_modules
-dist
-dist-ssr
-*.local
+# Next.js build
+.next/
+out/
 
-# Editor directories and files
+# build folders
+dist/
+dist-ssr/
+build/
+
+# coverage
+coverage/
+
+# environment variables
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+*.local
+!.env.example
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Vercel
+.vercel/
+
+# TypeScript
+*.tsbuildinfo
+next-env.d.ts
+
+# uploads and temporary files
+uploads/
+tmp/
+
+# IDE
 .vscode/*
 !.vscode/extensions.json
 .idea
-.DS_Store
 *.suo
 *.ntvs*
 *.njsproj
