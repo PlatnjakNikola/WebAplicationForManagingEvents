@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { mockReviews, mockEvents } from '../lib/mockData'
 import { useAuthStore } from '../store/authStore'
 import toast from 'react-hot-toast'
@@ -47,8 +47,14 @@ function StarRating({
 }
 
 export default function Reviews() {
+  const [loading, setLoading] = useState(true)
   const user = useAuthStore((s) => s.user)
   const [reviews, setReviews] = useState<Review[]>(mockReviews)
+
+  useEffect(() => {
+    const t = setTimeout(() => setLoading(false), 350)
+    return () => clearTimeout(t)
+  }, [])
   const [tab, setTab] = useState<Tab>('all')
   const [showForm, setShowForm] = useState(false)
   const [formRating, setFormRating] = useState(0)
@@ -205,7 +211,27 @@ export default function Reviews() {
 
       {/* Reviews grid */}
       <div className="mt-6">
-        {displayed.length === 0 ? (
+        {loading ? (
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <div key={i} className="animate-pulse rounded-sm border border-border bg-surface p-5">
+                <div className="flex items-start justify-between">
+                  <div>
+                    <div className="h-4 w-24 rounded-sm bg-base-lighter" />
+                    <div className="mt-2 h-3 w-16 rounded-sm bg-base-lighter" />
+                  </div>
+                  <div className="flex gap-1">
+                    {Array.from({ length: 5 }).map((_, j) => (
+                      <div key={j} className="h-5 w-5 rounded-sm bg-base-lighter" />
+                    ))}
+                  </div>
+                </div>
+                <div className="mt-3 h-10 rounded-sm bg-base-lighter" />
+                <div className="mt-3 h-4 w-3/4 rounded-sm bg-base-lighter" />
+              </div>
+            ))}
+          </div>
+        ) : displayed.length === 0 ? (
           <div className="rounded-sm border border-border bg-surface p-10 text-center">
             <svg
               className="mx-auto h-12 w-12 text-text-muted/40"
@@ -230,10 +256,11 @@ export default function Reviews() {
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             {displayed
               .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
-              .map((review) => (
+              .map((review, i) => (
                 <div
                   key={review.id}
-                  className="rounded-sm border border-border bg-surface p-5 transition-colors hover:border-border-strong"
+                  className="animate-stagger-in rounded-sm border border-border bg-surface p-5 transition-colors hover:border-border-strong"
+                  style={{ animationDelay: `${i * 60}ms` }}
                 >
                   {/* Header */}
                   <div className="flex items-start justify-between">
