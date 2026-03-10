@@ -1,9 +1,69 @@
-import { BrowserRouter } from 'react-router-dom'
+import { createBrowserRouter, RouterProvider, Navigate } from 'react-router-dom'
 import { Toaster } from 'react-hot-toast'
+import { useEffect } from 'react'
+import Layout from './components/Layout'
+import ProtectedRoute from './components/ProtectedRoute'
+import Login from './pages/Login'
+import Register from './pages/Register'
+import Events from './pages/Events'
+import Theaters from './pages/Theaters'
+import Reservations from './pages/Reservations'
+import Reviews from './pages/Reviews'
+import AdminEvents from './pages/admin/AdminEvents'
+import AdminTheaters from './pages/admin/AdminTheaters'
+import AdminReservations from './pages/admin/AdminReservations'
+import AdminReviews from './pages/admin/AdminReviews'
+import { useAuthStore } from './store/authStore'
+
+const router = createBrowserRouter([
+  // Public routes (no navbar/footer)
+  { path: '/login', element: <Login /> },
+  { path: '/register', element: <Register /> },
+
+  // Protected routes with layout
+  {
+    path: '/',
+    element: <Layout />,
+    children: [
+      // User routes
+      {
+        element: <ProtectedRoute />,
+        children: [
+          { index: true, element: <Navigate to="/events" replace /> },
+          { path: 'events', element: <Events /> },
+          { path: 'theaters', element: <Theaters /> },
+          { path: 'reservations', element: <Reservations /> },
+          { path: 'reviews', element: <Reviews /> },
+        ],
+      },
+      // Admin routes
+      {
+        path: 'admin',
+        element: <ProtectedRoute allowedRoles={['admin']} />,
+        children: [
+          { index: true, element: <Navigate to="/admin/events" replace /> },
+          { path: 'events', element: <AdminEvents /> },
+          { path: 'theaters', element: <AdminTheaters /> },
+          { path: 'reservations', element: <AdminReservations /> },
+          { path: 'reviews', element: <AdminReviews /> },
+        ],
+      },
+    ],
+  },
+
+  // Catch all
+  { path: '*', element: <Navigate to="/login" replace /> },
+])
 
 function App() {
+  const hydrate = useAuthStore((s) => s.hydrate)
+
+  useEffect(() => {
+    hydrate()
+  }, [hydrate])
+
   return (
-    <BrowserRouter>
+    <>
       <Toaster
         position="bottom-right"
         toastOptions={{
@@ -28,21 +88,8 @@ function App() {
           },
         }}
       />
-      <div className="flex min-h-screen flex-col">
-        <main className="flex-1">
-          <div className="flex items-center justify-center min-h-screen">
-            <div className="text-center">
-              <h1 className="font-display text-5xl md:text-7xl font-bold tracking-tight mb-4">
-                <span className="text-gold">Theatrum</span>
-              </h1>
-              <p className="text-text-secondary text-lg font-body">
-                Kazališni događaji na jednom mjestu
-              </p>
-            </div>
-          </div>
-        </main>
-      </div>
-    </BrowserRouter>
+      <RouterProvider router={router} />
+    </>
   )
 }
 
