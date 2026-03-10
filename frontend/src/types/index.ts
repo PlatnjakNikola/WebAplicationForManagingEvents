@@ -40,9 +40,11 @@ export interface Reservation {
   eventTitle: string
   theaterName: string
   date: string
+  time: string
   numberOfTickets: number
   totalPrice: number
-  status: 'active' | 'cancelled' | 'used'
+  status: 'confirmed' | 'cancelled'
+  createdAt: string
 }
 
 export interface Review {
