@@ -1,12 +1,20 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import EventCard from '../components/EventCard'
 import ReservationModal from '../components/ReservationModal'
+import { SkeletonCard } from '../components/Skeleton'
 import { mockEvents, mockTheaters } from '../lib/mockData'
 import type { Event } from '../types'
 
 const ITEMS_PER_PAGE = 6
 
 export default function Events() {
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    const t = setTimeout(() => setLoading(false), 600)
+    return () => clearTimeout(t)
+  }, [])
+
   // Filters
   const [search, setSearch] = useState('')
   const [dateFilter, setDateFilter] = useState('')
@@ -157,9 +165,13 @@ export default function Events() {
           ) : (
             <>
               <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-                {visibleEvents.map((event) => (
-                  <EventCard key={event.id} event={event} onReserve={handleReserve} />
-                ))}
+                {loading
+                  ? Array.from({ length: 6 }).map((_, i) => <SkeletonCard key={i} />)
+                  : visibleEvents.map((event, i) => (
+                      <div key={event.id} className="animate-stagger-in" style={{ animationDelay: `${i * 80}ms` }}>
+                        <EventCard event={event} onReserve={handleReserve} />
+                      </div>
+                    ))}
               </div>
 
               {/* Load more */}
