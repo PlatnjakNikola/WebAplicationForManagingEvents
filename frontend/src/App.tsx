@@ -9,6 +9,10 @@ import Events from './pages/Events'
 import Theaters from './pages/Theaters'
 import Reservations from './pages/Reservations'
 import Reviews from './pages/Reviews'
+import AdminEvents from './pages/admin/AdminEvents'
+import AdminTheaters from './pages/admin/AdminTheaters'
+import AdminReservations from './pages/admin/AdminReservations'
+import AdminReviews from './pages/admin/AdminReviews'
 import { useAuthStore } from './store/authStore'
 
 const router = createBrowserRouter([
@@ -16,11 +20,12 @@ const router = createBrowserRouter([
   { path: '/login', element: <Login /> },
   { path: '/register', element: <Register /> },
 
-  // Protected user routes
+  // Protected routes with layout
   {
     path: '/',
     element: <Layout />,
     children: [
+      // User routes
       {
         element: <ProtectedRoute />,
         children: [
@@ -29,6 +34,18 @@ const router = createBrowserRouter([
           { path: 'theaters', element: <Theaters /> },
           { path: 'reservations', element: <Reservations /> },
           { path: 'reviews', element: <Reviews /> },
+        ],
+      },
+      // Admin routes
+      {
+        path: 'admin',
+        element: <ProtectedRoute allowedRoles={['admin']} />,
+        children: [
+          { index: true, element: <Navigate to="/admin/events" replace /> },
+          { path: 'events', element: <AdminEvents /> },
+          { path: 'theaters', element: <AdminTheaters /> },
+          { path: 'reservations', element: <AdminReservations /> },
+          { path: 'reviews', element: <AdminReviews /> },
         ],
       },
     ],
