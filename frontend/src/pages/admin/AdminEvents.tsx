@@ -124,12 +124,8 @@ export default function AdminEvents() {
         </button>
       </div>
 
-      {/* Form */}
       {showForm && (
-        <form
-          onSubmit={handleSubmit}
-          className="mt-6 rounded-sm border border-border-strong bg-surface p-5"
-        >
+        <form onSubmit={handleSubmit} className="mt-6 rounded-sm border border-border-strong bg-surface p-5">
           <h2 className="font-display text-lg font-semibold text-text-primary">
             {editingId ? 'Uredi događaj' : 'Novi događaj'}
           </h2>
@@ -175,7 +171,6 @@ export default function AdminEvents() {
         </form>
       )}
 
-      {/* Desktop table */}
       <div className="mt-6 hidden overflow-x-auto md:block">
         <table className="w-full text-left text-sm">
           <thead>
@@ -206,7 +201,6 @@ export default function AdminEvents() {
         </table>
       </div>
 
-      {/* Mobile cards */}
       <div className="mt-6 space-y-3 md:hidden">
         {events.map((event) => (
           <div key={event.id} className="rounded-sm border border-border bg-surface p-4">
@@ -228,29 +222,14 @@ export default function AdminEvents() {
   )
 }
 
-function Input({
-  label,
-  value,
-  onChange,
-  type = 'text',
-  placeholder,
-}: {
-  label: string
-  value: string
-  onChange: (v: string) => void
-  type?: string
-  placeholder?: string
+function Input({ label, value, onChange, type = 'text', placeholder }: {
+  label: string; value: string; onChange: (v: string) => void; type?: string; placeholder?: string
 }) {
   return (
     <div>
       <label className="block text-sm font-medium text-text-secondary">{label}</label>
-      <input
-        type={type}
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        placeholder={placeholder}
-        className="mt-1 w-full rounded-sm border border-border bg-base-light px-3 py-2 text-sm text-text-primary outline-none focus:border-gold"
-      />
+      <input type={type} value={value} onChange={(e) => onChange(e.target.value)} placeholder={placeholder}
+        className="mt-1 w-full rounded-sm border border-border bg-base-light px-3 py-2 text-sm text-text-primary outline-none focus:border-gold" />
     </div>
   )
 }
