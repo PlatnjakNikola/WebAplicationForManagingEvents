@@ -1,4 +1,4 @@
-import type { Event, Theater } from '../types'
+import type { Event, Theater, Reservation } from '../types'
 
 export const mockTheaters: Theater[] = [
   {
