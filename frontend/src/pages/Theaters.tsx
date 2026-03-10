@@ -7,7 +7,7 @@ export default function Theaters() {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    const t = setTimeout(() => setLoading(false), 600)
+    const t = setTimeout(() => setLoading(false), 350)
     return () => clearTimeout(t)
   }, [])
 
