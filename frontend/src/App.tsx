@@ -7,6 +7,7 @@ import Login from './pages/Login'
 import Register from './pages/Register'
 import Events from './pages/Events'
 import Theaters from './pages/Theaters'
+import TheaterDetail from './pages/TheaterDetail'
 import Reservations from './pages/Reservations'
 import Reviews from './pages/Reviews'
 import AdminEvents from './pages/admin/AdminEvents'
@@ -32,6 +33,7 @@ const router = createBrowserRouter([
           { index: true, element: <Navigate to="/events" replace /> },
           { path: 'events', element: <Events /> },
           { path: 'theaters', element: <Theaters /> },
+          { path: 'theaters/:id', element: <TheaterDetail /> },
           { path: 'reservations', element: <Reservations /> },
           { path: 'reviews', element: <Reviews /> },
         ],
