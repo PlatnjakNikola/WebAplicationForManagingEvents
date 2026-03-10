@@ -1,27 +1,50 @@
 import { createBrowserRouter, RouterProvider, Navigate } from 'react-router-dom'
 import { Toaster } from 'react-hot-toast'
+import { useEffect } from 'react'
 import Layout from './components/Layout'
+import ProtectedRoute from './components/ProtectedRoute'
+import Login from './pages/Login'
+import Register from './pages/Register'
 import Events from './pages/Events'
 import Theaters from './pages/Theaters'
 import Reservations from './pages/Reservations'
 import Reviews from './pages/Reviews'
+import { useAuthStore } from './store/authStore'
 
 const router = createBrowserRouter([
+  // Public routes (no navbar/footer)
+  { path: '/login', element: <Login /> },
+  { path: '/register', element: <Register /> },
+
+  // Protected user routes
   {
     path: '/',
     element: <Layout />,
     children: [
-      { index: true, element: <Navigate to="/events" replace /> },
-      { path: 'events', element: <Events /> },
-      { path: 'theaters', element: <Theaters /> },
-      { path: 'reservations', element: <Reservations /> },
-      { path: 'reviews', element: <Reviews /> },
-      { path: '*', element: <Navigate to="/events" replace /> },
+      {
+        element: <ProtectedRoute />,
+        children: [
+          { index: true, element: <Navigate to="/events" replace /> },
+          { path: 'events', element: <Events /> },
+          { path: 'theaters', element: <Theaters /> },
+          { path: 'reservations', element: <Reservations /> },
+          { path: 'reviews', element: <Reviews /> },
+        ],
+      },
     ],
   },
+
+  // Catch all
+  { path: '*', element: <Navigate to="/login" replace /> },
 ])
 
 function App() {
+  const hydrate = useAuthStore((s) => s.hydrate)
+
+  useEffect(() => {
+    hydrate()
+  }, [hydrate])
+
   return (
     <>
       <Toaster
