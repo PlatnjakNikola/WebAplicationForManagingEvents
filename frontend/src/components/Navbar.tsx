@@ -25,9 +25,11 @@ export default function Navbar() {
   const links = isAdmin ? adminLinks : userLinks
 
   // Close menu on route change
-  useEffect(() => {
-    setIsOpen(false)
-  }, [location.pathname])
+  const [prevPathname, setPrevPathname] = useState(location.pathname)
+  if (location.pathname !== prevPathname) {
+    setPrevPathname(location.pathname)
+    if (isOpen) setIsOpen(false)
+  }
 
   // Prevent body scroll when menu is open
   useEffect(() => {
@@ -42,87 +44,89 @@ export default function Navbar() {
   }, [isOpen])
 
   return (
-    <nav className="fixed top-0 left-0 right-0 z-50 border-b border-border bg-base/80 backdrop-blur-xl">
-      <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-5 md:h-20 md:px-8">
-        {/* Logo */}
-        <Link to={isAdmin ? '/admin/events' : '/events'} className="group flex items-center gap-2">
-          <div className="flex h-9 w-9 items-center justify-center rounded-sm border border-gold/30 bg-gold/10 transition-colors group-hover:border-gold/60 group-hover:bg-gold/20">
-            <span className="font-display text-lg font-bold text-gold">T</span>
-          </div>
-          <span className="font-display text-xl font-semibold tracking-wide text-text-primary">
-            Theatrum
-          </span>
-          {isAdmin && (
-            <span className="ml-1 rounded-sm bg-gold/15 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-widest text-gold">
-              Admin
+    <>
+      <nav className="fixed top-0 left-0 right-0 z-50 border-b border-border bg-base/80 backdrop-blur-xl">
+        <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-5 md:h-20 md:px-8">
+          {/* Logo */}
+          <Link to={isAdmin ? '/admin/events' : '/events'} className="group flex items-center gap-2">
+            <div className="flex h-9 w-9 items-center justify-center rounded-sm border border-gold/30 bg-gold/10 transition-colors group-hover:border-gold/60 group-hover:bg-gold/20">
+              <span className="font-display text-lg font-bold text-gold">T</span>
+            </div>
+            <span className="font-display text-xl font-semibold tracking-wide text-text-primary">
+              Theatrum
             </span>
+            {isAdmin && (
+              <span className="ml-1 rounded-sm bg-gold/15 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-widest text-gold">
+                Admin
+              </span>
+            )}
+          </Link>
+
+          {/* Desktop links */}
+          {isAuthenticated && (
+            <div className="hidden items-center gap-1 md:flex">
+              {links.map((link) => {
+                const isActive = location.pathname === link.to
+                return (
+                  <Link
+                    key={link.to}
+                    to={link.to}
+                    className={`relative px-4 py-2 text-sm font-medium transition-colors ${
+                      isActive
+                        ? 'text-gold'
+                        : 'text-text-secondary hover:text-text-primary'
+                    }`}
+                  >
+                    {link.label}
+                    {isActive && (
+                      <span className="absolute bottom-0 left-4 right-4 h-px bg-gold" />
+                    )}
+                  </Link>
+                )
+              })}
+              <div className="ml-3 h-5 w-px bg-border-strong" />
+              <button
+                onClick={logout}
+                className="ml-3 rounded-sm border border-border-strong px-4 py-1.5 text-sm font-medium text-text-secondary transition-all hover:border-gold/40 hover:text-gold"
+              >
+                Odjava
+              </button>
+            </div>
           )}
-        </Link>
 
-        {/* Desktop links */}
-        {isAuthenticated && (
-          <div className="hidden items-center gap-1 md:flex">
-            {links.map((link) => {
-              const isActive = location.pathname === link.to
-              return (
-                <Link
-                  key={link.to}
-                  to={link.to}
-                  className={`relative px-4 py-2 text-sm font-medium transition-colors ${
-                    isActive
-                      ? 'text-gold'
-                      : 'text-text-secondary hover:text-text-primary'
-                  }`}
-                >
-                  {link.label}
-                  {isActive && (
-                    <span className="absolute bottom-0 left-4 right-4 h-px bg-gold" />
-                  )}
-                </Link>
-              )
-            })}
-            <div className="ml-3 h-5 w-px bg-border-strong" />
+          {/* Mobile hamburger */}
+          {isAuthenticated && (
             <button
-              onClick={logout}
-              className="ml-3 rounded-sm border border-border-strong px-4 py-1.5 text-sm font-medium text-text-secondary transition-all hover:border-gold/40 hover:text-gold"
+              onClick={() => setIsOpen(!isOpen)}
+              className="relative flex h-10 w-10 flex-col items-center justify-center gap-1.5 md:hidden"
+              aria-label="Toggle menu"
             >
-              Odjava
+              <span
+                className={`h-px w-6 bg-text-primary transition-all duration-300 ${
+                  isOpen ? 'translate-y-[3.5px] rotate-45' : ''
+                }`}
+              />
+              <span
+                className={`h-px w-6 bg-text-primary transition-all duration-300 ${
+                  isOpen ? '-translate-y-[3.5px] -rotate-45' : ''
+                }`}
+              />
             </button>
-          </div>
-        )}
+          )}
+        </div>
+      </nav>
 
-        {/* Mobile hamburger */}
-        {isAuthenticated && (
-          <button
-            onClick={() => setIsOpen(!isOpen)}
-            className="relative z-50 flex h-10 w-10 flex-col items-center justify-center gap-1.5 md:hidden"
-            aria-label="Toggle menu"
-          >
-            <span
-              className={`h-px w-6 bg-text-primary transition-all duration-300 ${
-                isOpen ? 'translate-y-[3.5px] rotate-45' : ''
-              }`}
-            />
-            <span
-              className={`h-px w-6 bg-text-primary transition-all duration-300 ${
-                isOpen ? '-translate-y-[3.5px] -rotate-45' : ''
-              }`}
-            />
-          </button>
-        )}
-      </div>
-
-      {/* Mobile overlay */}
+      {/* Mobile overlay — OUTSIDE nav to avoid stacking context */}
       <div
-        className={`fixed inset-0 z-40 bg-overlay transition-opacity duration-300 md:hidden ${
+        className={`fixed inset-0 z-[60] bg-overlay transition-opacity duration-300 md:hidden ${
           isOpen ? 'opacity-100' : 'pointer-events-none opacity-0'
         }`}
         onClick={() => setIsOpen(false)}
       />
 
-      {/* Mobile slide-in panel */}
+      {/* Mobile slide-in panel — OUTSIDE nav */}
       <div
-        className={`fixed top-0 right-0 z-40 flex h-full w-72 flex-col border-l border-border bg-base-light transition-transform duration-300 ease-out md:hidden ${
+        className={`fixed top-0 right-0 z-[70] flex h-full w-72 flex-col border-l border-border bg-base-light transition-transform duration-300 ease-out md:hidden ${
           isOpen ? 'translate-x-0' : 'translate-x-full'
         }`}
       >
@@ -172,6 +176,6 @@ export default function Navbar() {
           </button>
         </div>
       </div>
-    </nav>
+    </>
   )
 }

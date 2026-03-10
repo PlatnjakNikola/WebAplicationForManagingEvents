@@ -37,13 +37,16 @@ export default function Reservations() {
 
   return (
     <div className="mx-auto max-w-3xl px-5 py-8 md:px-8">
+      {/* Header */}
       <h1 className="font-display text-3xl font-bold text-gold md:text-4xl">
         Moje rezervacije
       </h1>
       <p className="mt-2 text-sm text-text-muted">
-        Ukupno {reservations.length} rezervacija
+        Ukupno {reservations.length}{' '}
+        {reservations.length === 1 ? 'rezervacija' : 'rezervacija'}
       </p>
 
+      {/* Filter tabs */}
       <div className="mt-6 flex gap-2">
         {filters.map((f) => (
           <button
@@ -60,34 +63,53 @@ export default function Reservations() {
         ))}
       </div>
 
+      {/* Reservation list */}
       <div className="mt-6 space-y-3">
         {filtered.length === 0 ? (
           <div className="rounded-sm border border-border bg-surface p-10 text-center">
-            <svg className="mx-auto h-12 w-12 text-text-muted/40" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 6v.75m0 3v.75m0 3v.75m0 3V18m-9-5.25h5.25M7.5 15h3M3.375 5.25c-.621 0-1.125.504-1.125 1.125v3.026a2.999 2.999 0 010 5.198v3.026c0 .621.504 1.125 1.125 1.125h17.25c.621 0 1.125-.504 1.125-1.125v-3.026a2.999 2.999 0 010-5.198V6.375c0-.621-.504-1.125-1.125-1.125H3.375z" />
+            <svg
+              className="mx-auto h-12 w-12 text-text-muted/40"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth={1}
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M16.5 6v.75m0 3v.75m0 3v.75m0 3V18m-9-5.25h5.25M7.5 15h3M3.375 5.25c-.621 0-1.125.504-1.125 1.125v3.026a2.999 2.999 0 010 5.198v3.026c0 .621.504 1.125 1.125 1.125h17.25c.621 0 1.125-.504 1.125-1.125v-3.026a2.999 2.999 0 010-5.198V6.375c0-.621-.504-1.125-1.125-1.125H3.375z"
+              />
             </svg>
-            <p className="mt-3 text-sm text-text-muted">Nema rezervacija u ovoj kategoriji.</p>
+            <p className="mt-3 text-sm text-text-muted">
+              Nema rezervacija u ovoj kategoriji.
+            </p>
           </div>
         ) : (
-          filtered.map((reservation) => (
+          filtered.map((reservation, i) => (
             <div
               key={reservation.id}
               className="overflow-hidden rounded-sm border border-border bg-surface transition-colors hover:border-border-strong"
+              style={{ animationDelay: `${i * 60}ms` }}
             >
+              {/* Accordion header */}
               <button
-                onClick={() => setExpandedId(expandedId === reservation.id ? null : reservation.id)}
+                onClick={() =>
+                  setExpandedId(expandedId === reservation.id ? null : reservation.id)
+                }
                 className="flex w-full items-center justify-between px-5 py-4 text-left"
               >
-                <div className="min-w-0 flex-1">
+                <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-3">
                     <h3 className="truncate font-display text-base font-semibold text-text-primary">
                       {reservation.eventTitle}
                     </h3>
-                    <span className={`shrink-0 rounded-sm px-2 py-0.5 text-xs font-medium ${
-                      reservation.status === 'confirmed'
-                        ? 'bg-accent-green/15 text-accent-green'
-                        : 'bg-accent-red/15 text-accent-red'
-                    }`}>
+                    <span
+                      className={`shrink-0 rounded-sm px-2 py-0.5 text-xs font-medium ${
+                        reservation.status === 'confirmed'
+                          ? 'bg-accent-green/15 text-accent-green'
+                          : 'bg-accent-red/15 text-accent-red'
+                      }`}
+                    >
                       {reservation.status === 'confirmed' ? 'Potvrđena' : 'Otkazana'}
                     </span>
                   </div>
@@ -95,22 +117,38 @@ export default function Reservations() {
                     {reservation.theaterName} · {reservation.date} u {reservation.time}
                   </p>
                 </div>
+
                 <div className="ml-4 flex items-center gap-4">
-                  <span className="hidden text-sm font-medium text-gold sm:block">{reservation.totalPrice} €</span>
-                  <svg className={`h-5 w-5 text-text-muted transition-transform duration-200 ${expandedId === reservation.id ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <span className="hidden text-sm font-medium text-gold sm:block">
+                    {reservation.totalPrice} €
+                  </span>
+                  <svg
+                    className={`h-5 w-5 text-text-muted transition-transform duration-200 ${
+                      expandedId === reservation.id ? 'rotate-180' : ''
+                    }`}
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    strokeWidth={2}
+                  >
                     <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
                   </svg>
                 </div>
               </button>
 
+              {/* Expanded details */}
               {expandedId === reservation.id && (
                 <div className="border-t border-border px-5 py-4">
                   <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
                     <Detail label="Broj karata" value={`${reservation.numberOfTickets}`} />
                     <Detail label="Ukupna cijena" value={`${reservation.totalPrice} €`} />
                     <Detail label="Datum događaja" value={reservation.date} />
-                    <Detail label="Rezervirano" value={new Date(reservation.createdAt).toLocaleDateString('hr-HR')} />
+                    <Detail
+                      label="Rezervirano"
+                      value={new Date(reservation.createdAt).toLocaleDateString('hr-HR')}
+                    />
                   </div>
+
                   {reservation.status === 'confirmed' && (
                     <button
                       onClick={() => handleCancel(reservation.id)}
