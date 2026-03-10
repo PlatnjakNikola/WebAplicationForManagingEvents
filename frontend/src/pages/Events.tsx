@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react'
 import EventCard from '../components/EventCard'
+import ReservationModal from '../components/ReservationModal'
 import { mockEvents, mockTheaters } from '../lib/mockData'
 import type { Event } from '../types'
 
@@ -41,8 +42,10 @@ export default function Events() {
 
   const hasActiveFilters = search || dateFilter || theaterFilter
 
-  const handleReserve = (_event: Event) => {
-    // Will be implemented in Step 5
+  const [reserveEvent, setReserveEvent] = useState<Event | null>(null)
+
+  const handleReserve = (event: Event) => {
+    setReserveEvent(event)
   }
 
   return (
@@ -260,6 +263,9 @@ export default function Events() {
           </div>
         </div>
       </div>
+
+      {/* Reservation modal */}
+      <ReservationModal event={reserveEvent} onClose={() => setReserveEvent(null)} />
     </div>
   )
 }
