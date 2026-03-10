@@ -51,7 +51,6 @@ export const useAuthStore = create<AuthState>((set) => ({
   },
 
   login: async (email, password) => {
-    // Simulate API delay
     await new Promise((r) => setTimeout(r, 800))
 
     const found = MOCK_USERS.find(
@@ -80,7 +79,6 @@ export const useAuthStore = create<AuthState>((set) => ({
       return { success: false, error: 'Korisnik s tim emailom već postoji' }
     }
 
-    // In real app, this would call API
     return { success: true }
   },
 
