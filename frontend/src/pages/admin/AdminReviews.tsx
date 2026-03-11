@@ -21,6 +21,7 @@ function Stars({ rating }: { rating: number }) {
 export default function AdminReviews() {
   const [expandedId, setExpandedId] = useState<string | null>(null)
   const [filterEvent, setFilterEvent] = useState('')
+  const [sortBy, setSortBy] = useState<'date-desc' | 'date-asc' | 'rating-desc' | 'rating-asc'>('date-desc')
 
   const eventOptions = useMemo(() => {
     const titles = [...new Set(mockReviews.map((r) => r.eventTitle))]
@@ -30,10 +31,15 @@ export default function AdminReviews() {
   const reviews = useMemo(() => {
     let filtered = [...mockReviews]
     if (filterEvent) filtered = filtered.filter((r) => r.eventTitle === filterEvent)
-    return filtered.sort(
-      (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-    )
-  }, [filterEvent])
+    return filtered.sort((a, b) => {
+      switch (sortBy) {
+        case 'date-desc': return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+        case 'date-asc': return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+        case 'rating-desc': return b.rating - a.rating
+        case 'rating-asc': return a.rating - b.rating
+      }
+    })
+  }, [filterEvent, sortBy])
 
   function toggleExpand(id: string) {
     setExpandedId((prev) => (prev === id ? null : id))
@@ -56,6 +62,16 @@ export default function AdminReviews() {
             {eventOptions.map((title) => (
               <option key={title} value={title}>{title}</option>
             ))}
+          </select>
+          <select
+            value={sortBy}
+            onChange={(e) => { setSortBy(e.target.value as typeof sortBy); setExpandedId(null) }}
+            className="h-[42px] rounded-sm border border-border bg-base-light px-3 text-sm text-text-primary outline-none focus:border-gold"
+          >
+            <option value="date-desc">Datum ↓</option>
+            <option value="date-asc">Datum ↑</option>
+            <option value="rating-desc">Ocjena ↓</option>
+            <option value="rating-asc">Ocjena ↑</option>
           </select>
         </div>
       </div>
