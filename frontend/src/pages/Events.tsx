@@ -27,11 +27,12 @@ export default function Events() {
   const [visibleCount, setVisibleCount] = useState(ITEMS_PER_PAGE)
 
   const filteredEvents = useMemo(() => {
+    const searchTrimmed = search.trim().toLowerCase()
     return events.filter((event) => {
       const matchesSearch =
-        !search ||
-        event.title.toLowerCase().includes(search.toLowerCase()) ||
-        event.description.toLowerCase().includes(search.toLowerCase())
+        !searchTrimmed ||
+        event.title.toLowerCase().includes(searchTrimmed) ||
+        event.description.toLowerCase().includes(searchTrimmed)
 
       const matchesDate = !dateFilter || event.date === dateFilter
 
