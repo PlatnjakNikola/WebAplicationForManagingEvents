@@ -1,5 +1,6 @@
 import { useState, useMemo, useEffect } from 'react'
 import EventCard from '../components/EventCard'
+import EventDetailModal from '../components/EventDetailModal'
 import ReservationModal from '../components/ReservationModal'
 import { SkeletonCard } from '../components/Skeleton'
 import { mockEvents, mockTheaters } from '../lib/mockData'
@@ -51,6 +52,7 @@ export default function Events() {
   const hasActiveFilters = search || dateFilter || theaterFilter
 
   const [reserveEvent, setReserveEvent] = useState<Event | null>(null)
+  const [detailEvent, setDetailEvent] = useState<Event | null>(null)
 
   const handleReserve = (event: Event) => {
     setReserveEvent(event)
@@ -169,7 +171,7 @@ export default function Events() {
                   ? Array.from({ length: 6 }).map((_, i) => <SkeletonCard key={i} />)
                   : visibleEvents.map((event, i) => (
                       <div key={event.id} className="animate-stagger-in" style={{ animationDelay: `${i * 80}ms` }}>
-                        <EventCard event={event} onReserve={handleReserve} />
+                        <EventCard event={event} onReserve={handleReserve} onDetail={setDetailEvent} />
                       </div>
                     ))}
               </div>
@@ -275,6 +277,9 @@ export default function Events() {
           </div>
         </div>
       </div>
+
+      {/* Event detail modal */}
+      <EventDetailModal event={detailEvent} onClose={() => setDetailEvent(null)} onReserve={(e) => { setDetailEvent(null); handleReserve(e) }} />
 
       {/* Reservation modal */}
       <ReservationModal event={reserveEvent} onClose={() => setReserveEvent(null)} />

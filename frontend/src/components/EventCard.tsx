@@ -3,9 +3,10 @@ import type { Event } from '../types'
 interface EventCardProps {
   event: Event
   onReserve: (event: Event) => void
+  onDetail: (event: Event) => void
 }
 
-export default function EventCard({ event, onReserve }: EventCardProps) {
+export default function EventCard({ event, onReserve, onDetail }: EventCardProps) {
   const isAlmostFull = event.availableSeats < 50
   const isSoldOut = event.availableSeats === 0
 
@@ -16,7 +17,10 @@ export default function EventCard({ event, onReserve }: EventCardProps) {
   })
 
   return (
-    <div className="group flex flex-col overflow-hidden rounded-sm border border-border bg-surface transition-all hover:border-border-strong hover:shadow-lg hover:shadow-gold/5">
+    <div
+      onClick={() => onDetail(event)}
+      className="group flex cursor-pointer flex-col overflow-hidden rounded-sm border border-border bg-surface transition-all hover:border-border-strong hover:shadow-lg hover:shadow-gold/5"
+    >
       {/* Image */}
       <div className="relative h-48 overflow-hidden">
         <img
@@ -79,7 +83,7 @@ export default function EventCard({ event, onReserve }: EventCardProps) {
           </div>
 
           <button
-            onClick={() => onReserve(event)}
+            onClick={(e) => { e.stopPropagation(); onReserve(event) }}
             disabled={isSoldOut}
             className="rounded-sm bg-gold px-5 py-2 text-sm font-semibold text-base transition-all hover:bg-gold-light disabled:opacity-40 disabled:cursor-not-allowed"
           >
