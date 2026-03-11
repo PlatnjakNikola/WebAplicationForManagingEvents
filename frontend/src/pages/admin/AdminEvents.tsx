@@ -15,14 +15,22 @@ const emptyForm = {
   imageUrl: '',
 }
 
+type FormErrors = Partial<Record<keyof typeof emptyForm, string>>
+
+function sanitize(value: string): string {
+  return value.trim().replace(/\s{2,}/g, ' ')
+}
+
 export default function AdminEvents() {
   const [events, setEvents] = useState<Event[]>(mockEvents)
   const [showForm, setShowForm] = useState(false)
   const [editingId, setEditingId] = useState<string | null>(null)
   const [form, setForm] = useState(emptyForm)
+  const [errors, setErrors] = useState<FormErrors>({})
 
   function openAdd() {
     setForm(emptyForm)
+    setErrors({})
     setEditingId(null)
     setShowForm(true)
   }
@@ -39,18 +47,36 @@ export default function AdminEvents() {
       duration: event.duration,
       imageUrl: event.imageUrl,
     })
+    setErrors({})
     setEditingId(event.id)
     setShowForm(true)
   }
 
+  function validate(): FormErrors {
+    const errs: FormErrors = {}
+    if (!sanitize(form.title)) errs.title = 'Naziv je obavezan'
+    if (!form.theaterId) errs.theaterId = 'Kazalište je obavezno'
+    if (!form.date) errs.date = 'Datum je obavezan'
+    if (!form.time.trim()) errs.time = 'Vrijeme je obavezno'
+    if (!form.pricePerTicket.trim()) errs.pricePerTicket = 'Cijena je obavezna'
+    if (!form.totalSeats.trim()) errs.totalSeats = 'Ukupno mjesta je obavezno'
+    return errs
+  }
+
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-    if (!form.title || !form.theaterId || !form.date) {
-      return toast.error('Popunite obavezna polja.')
+    const errs = validate()
+    setErrors(errs)
+    if (Object.keys(errs).length > 0) {
+      toast.error('Ispravite označena polja.')
+      return
     }
 
     const theater = mockTheaters.find((t) => t.id === form.theaterId)
-    const totalSeats = Number(form.totalSeats) || 100
+    const totalSeats = Number(form.totalSeats)
+    const title = sanitize(form.title)
+    const description = sanitize(form.description)
+    const duration = sanitize(form.duration)
 
     if (editingId) {
       setEvents((prev) =>
@@ -58,16 +84,16 @@ export default function AdminEvents() {
           ev.id === editingId
             ? {
                 ...ev,
-                title: form.title,
-                description: form.description,
+                title,
+                description,
                 theaterId: form.theaterId,
                 theaterName: theater?.name || '',
                 date: form.date,
-                time: form.time,
-                pricePerTicket: Number(form.pricePerTicket) || 0,
+                time: form.time.trim(),
+                pricePerTicket: Number(form.pricePerTicket),
                 totalSeats,
-                duration: form.duration,
-                imageUrl: form.imageUrl,
+                duration,
+                imageUrl: form.imageUrl.trim(),
               }
             : ev
         )
@@ -76,17 +102,17 @@ export default function AdminEvents() {
     } else {
       const newEvent: Event = {
         id: String(Date.now()),
-        title: form.title,
-        description: form.description,
+        title,
+        description,
         theaterId: form.theaterId,
         theaterName: theater?.name || '',
         date: form.date,
-        time: form.time,
-        pricePerTicket: Number(form.pricePerTicket) || 0,
+        time: form.time.trim(),
+        pricePerTicket: Number(form.pricePerTicket),
         totalSeats,
         availableSeats: totalSeats,
-        imageUrl: form.imageUrl || 'https://images.unsplash.com/photo-1507676184212-d03ab07a01bf?w=600&h=400&fit=crop',
-        duration: form.duration,
+        imageUrl: form.imageUrl.trim() || 'https://images.unsplash.com/photo-1507676184212-d03ab07a01bf?w=600&h=400&fit=crop',
+        duration,
       }
       setEvents((prev) => [newEvent, ...prev])
       toast.success('Događaj je dodan.')
@@ -95,6 +121,7 @@ export default function AdminEvents() {
     setShowForm(false)
     setEditingId(null)
     setForm(emptyForm)
+    setErrors({})
   }
 
   function handleDelete(id: string) {
@@ -105,6 +132,13 @@ export default function AdminEvents() {
 
   function updateField(field: string, value: string) {
     setForm((prev) => ({ ...prev, [field]: value }))
+    if (errors[field as keyof FormErrors]) {
+      setErrors((prev) => {
+        const next = { ...prev }
+        delete next[field as keyof FormErrors]
+        return next
+      })
+    }
   }
 
   return (
@@ -130,24 +164,27 @@ export default function AdminEvents() {
             {editingId ? 'Uredi događaj' : 'Novi događaj'}
           </h2>
           <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <Input label="Naziv *" value={form.title} onChange={(v) => updateField('title', v)} />
+            <Input label="Naziv *" value={form.title} onChange={(v) => updateField('title', v)} error={errors.title} />
             <div>
               <label className="block text-sm font-medium text-text-secondary">Kazalište *</label>
               <select
                 value={form.theaterId}
                 onChange={(e) => updateField('theaterId', e.target.value)}
-                className="mt-1 w-full rounded-sm border border-border bg-base-light px-3 py-2 text-sm text-text-primary outline-none focus:border-gold"
+                className={`mt-1 w-full rounded-sm border bg-base-light px-3 py-2 text-sm text-text-primary outline-none focus:border-gold ${
+                  errors.theaterId ? 'border-accent-red' : 'border-border'
+                }`}
               >
                 <option value="">Odaberite...</option>
                 {mockTheaters.map((t) => (
                   <option key={t.id} value={t.id}>{t.name}</option>
                 ))}
               </select>
+              {errors.theaterId && <p className="mt-1 text-xs text-accent-red">{errors.theaterId}</p>}
             </div>
-            <Input label="Datum *" type="date" value={form.date} onChange={(v) => updateField('date', v)} />
-            <Input label="Vrijeme" type="time" value={form.time} onChange={(v) => updateField('time', v)} />
-            <Input label="Cijena (€)" type="number" value={form.pricePerTicket} onChange={(v) => updateField('pricePerTicket', v)} />
-            <Input label="Ukupno mjesta" type="number" value={form.totalSeats} onChange={(v) => updateField('totalSeats', v)} />
+            <Input label="Datum *" type="date" value={form.date} onChange={(v) => updateField('date', v)} error={errors.date} />
+            <Input label="Vrijeme *" type="time" value={form.time} onChange={(v) => updateField('time', v)} error={errors.time} />
+            <Input label="Cijena (€) *" type="number" value={form.pricePerTicket} onChange={(v) => updateField('pricePerTicket', v)} error={errors.pricePerTicket} />
+            <Input label="Ukupno mjesta *" type="number" value={form.totalSeats} onChange={(v) => updateField('totalSeats', v)} error={errors.totalSeats} />
             <Input label="Trajanje" value={form.duration} onChange={(v) => updateField('duration', v)} placeholder="npr. 2h 30min" />
             <Input label="Slika URL" value={form.imageUrl} onChange={(v) => updateField('imageUrl', v)} />
             <div className="sm:col-span-2">
@@ -164,7 +201,7 @@ export default function AdminEvents() {
             <button type="submit" className="rounded-sm bg-gold px-5 py-2 text-sm font-semibold text-base hover:bg-gold-light">
               {editingId ? 'Spremi' : 'Dodaj'}
             </button>
-            <button type="button" onClick={() => setShowForm(false)} className="rounded-sm border border-border px-5 py-2 text-sm text-text-secondary hover:text-text-primary">
+            <button type="button" onClick={() => { setShowForm(false); setErrors({}) }} className="rounded-sm border border-border px-5 py-2 text-sm text-text-secondary hover:text-text-primary">
               Odustani
             </button>
           </div>
@@ -222,14 +259,17 @@ export default function AdminEvents() {
   )
 }
 
-function Input({ label, value, onChange, type = 'text', placeholder }: {
-  label: string; value: string; onChange: (v: string) => void; type?: string; placeholder?: string
+function Input({ label, value, onChange, type = 'text', placeholder, error }: {
+  label: string; value: string; onChange: (v: string) => void; type?: string; placeholder?: string; error?: string
 }) {
   return (
     <div>
       <label className="block text-sm font-medium text-text-secondary">{label}</label>
       <input type={type} value={value} onChange={(e) => onChange(e.target.value)} placeholder={placeholder}
-        className="mt-1 w-full rounded-sm border border-border bg-base-light px-3 py-2 text-sm text-text-primary outline-none focus:border-gold" />
+        className={`mt-1 w-full rounded-sm border bg-base-light px-3 py-2 text-sm text-text-primary outline-none focus:border-gold ${
+          error ? 'border-accent-red' : 'border-border'
+        }`} />
+      {error && <p className="mt-1 text-xs text-accent-red">{error}</p>}
     </div>
   )
 }
