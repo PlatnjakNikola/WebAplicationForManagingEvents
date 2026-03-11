@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { mockReviews } from '../../lib/mockData'
 
 function Stars({ rating }: { rating: number }) {
@@ -20,10 +20,20 @@ function Stars({ rating }: { rating: number }) {
 
 export default function AdminReviews() {
   const [expandedId, setExpandedId] = useState<string | null>(null)
+  const [filterEvent, setFilterEvent] = useState('')
 
-  const reviews = [...mockReviews].sort(
-    (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-  )
+  const eventOptions = useMemo(() => {
+    const titles = [...new Set(mockReviews.map((r) => r.eventTitle))]
+    return titles.sort((a, b) => a.localeCompare(b, 'hr'))
+  }, [])
+
+  const reviews = useMemo(() => {
+    let filtered = [...mockReviews]
+    if (filterEvent) filtered = filtered.filter((r) => r.eventTitle === filterEvent)
+    return filtered.sort(
+      (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+    )
+  }, [filterEvent])
 
   function toggleExpand(id: string) {
     setExpandedId((prev) => (prev === id ? null : id))
@@ -31,9 +41,23 @@ export default function AdminReviews() {
 
   return (
     <div className="mx-auto max-w-7xl px-5 py-8 md:px-8">
-      <div>
-        <h1 className="font-display text-3xl font-bold text-gold md:text-4xl">Sve recenzije</h1>
-        <p className="mt-1 text-sm text-text-muted">{reviews.length} recenzija</p>
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <h1 className="font-display text-3xl font-bold text-gold md:text-4xl">Sve recenzije</h1>
+          <p className="mt-1 text-sm text-text-muted">{reviews.length} recenzija</p>
+        </div>
+        <div className="flex items-center gap-3">
+          <select
+            value={filterEvent}
+            onChange={(e) => { setFilterEvent(e.target.value); setExpandedId(null) }}
+            className="h-[42px] rounded-sm border border-border bg-base-light px-3 text-sm text-text-primary outline-none focus:border-gold"
+          >
+            <option value="">Sve predstave</option>
+            {eventOptions.map((title) => (
+              <option key={title} value={title}>{title}</option>
+            ))}
+          </select>
+        </div>
       </div>
 
       {/* Desktop table */}
