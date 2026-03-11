@@ -50,8 +50,6 @@ tmp/
 
 # Claude Code
 .claude/
-.md
-
 
 # IDE
 .vscode/*
@@ -62,6 +60,3 @@ tmp/
 *.njsproj
 *.sln
 *.sw?
-backend/Claude.md
-.gitignore
-Theatrum-Libraries.md
