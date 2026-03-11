@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import type { Event } from '../types'
 
 interface EventCardProps {
@@ -7,6 +8,7 @@ interface EventCardProps {
 }
 
 export default function EventCard({ event, onReserve, onDetail }: EventCardProps) {
+  const [imgError, setImgError] = useState(false)
   const isAlmostFull = event.availableSeats < 50
   const isSoldOut = event.availableSeats === 0
 
@@ -23,11 +25,30 @@ export default function EventCard({ event, onReserve, onDetail }: EventCardProps
     >
       {/* Image */}
       <div className="relative h-48 overflow-hidden">
-        <img
-          src={event.imageUrl}
-          alt={event.title}
-          className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
-        />
+        {imgError ? (
+          <div className="flex h-full w-full flex-col items-center justify-center gap-2 bg-surface">
+            <svg className="h-16 w-16 text-gold/15" viewBox="0 0 64 64" fill="none" stroke="currentColor" strokeWidth={1.5}>
+              {/* Happy mask */}
+              <path d="M10 14c0-2 2-4 4-4h10c2 0 4 2 4 4v12c0 6-4 10-9 10s-9-4-9-10V14z" fill="currentColor" fillOpacity={0.3} />
+              <circle cx="17" cy="20" r="1.5" fill="currentColor" fillOpacity={0.6} />
+              <circle cx="25" cy="20" r="1.5" fill="currentColor" fillOpacity={0.6} />
+              <path d="M16 27c0 0 2.5 3 5 3s5-3 5-3" strokeWidth={1.5} strokeLinecap="round" />
+              {/* Sad mask */}
+              <path d="M36 18c0-2 2-4 4-4h10c2 0 4 2 4 4v12c0 6-4 10-9 10s-9-4-9-10V18z" fill="currentColor" fillOpacity={0.2} />
+              <circle cx="43" cy="24" r="1.5" fill="currentColor" fillOpacity={0.6} />
+              <circle cx="51" cy="24" r="1.5" fill="currentColor" fillOpacity={0.6} />
+              <path d="M42 33c0 0 2.5-3 5-3s5 3 5 3" strokeWidth={1.5} strokeLinecap="round" />
+            </svg>
+            <span className="text-xs text-text-muted/30">Slika nedostupna</span>
+          </div>
+        ) : (
+          <img
+            src={event.imageUrl}
+            alt={event.title}
+            onError={() => setImgError(true)}
+            className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+          />
+        )}
         <div className="absolute inset-0 bg-gradient-to-t from-base/80 via-transparent to-transparent" />
 
         {/* Duration badge */}
