@@ -7,8 +7,8 @@ import { useAuthStore } from '../store/authStore'
 import toast from 'react-hot-toast'
 
 const loginSchema = z.object({
-  email: z.email('Unesite ispravnu email adresu'),
-  password: z.string().min(6, 'Lozinka mora imati najmanje 6 znakova'),
+  email: z.email('Unesite ispravnu email adresu').trim(),
+  password: z.string().trim().min(6, 'Lozinka mora imati najmanje 6 znakova').regex(/^\S+$/, 'Lozinka ne smije sadržavati razmake'),
 })
 
 type LoginForm = z.infer<typeof loginSchema>
