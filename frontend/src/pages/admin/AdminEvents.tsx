@@ -17,8 +17,8 @@ const emptyForm = {
 
 type FormErrors = Partial<Record<keyof typeof emptyForm, string>>
 
-function sanitize(value: string): string {
-  return value.trim().replace(/\s{2,}/g, ' ')
+function hasDoubleSpaces(value: string): boolean {
+  return /\s{2,}/.test(value)
 }
 
 export default function AdminEvents() {
@@ -54,12 +54,15 @@ export default function AdminEvents() {
 
   function validate(): FormErrors {
     const errs: FormErrors = {}
-    if (!sanitize(form.title)) errs.title = 'Naziv je obavezan'
+    if (!form.title.trim()) errs.title = 'Naziv je obavezan'
+    else if (hasDoubleSpaces(form.title)) errs.title = 'Naziv ne smije imati duple razmake'
     if (!form.theaterId) errs.theaterId = 'Kazalište je obavezno'
     if (!form.date) errs.date = 'Datum je obavezan'
     if (!form.time.trim()) errs.time = 'Vrijeme je obavezno'
     if (!form.pricePerTicket.trim()) errs.pricePerTicket = 'Cijena je obavezna'
     if (!form.totalSeats.trim()) errs.totalSeats = 'Ukupno mjesta je obavezno'
+    if (form.description.trim() && hasDoubleSpaces(form.description)) errs.description = 'Opis ne smije imati duple razmake'
+    if (form.duration.trim() && hasDoubleSpaces(form.duration)) errs.duration = 'Trajanje ne smije imati duple razmake'
     return errs
   }
 
@@ -74,9 +77,9 @@ export default function AdminEvents() {
 
     const theater = mockTheaters.find((t) => t.id === form.theaterId)
     const totalSeats = Number(form.totalSeats)
-    const title = sanitize(form.title)
-    const description = sanitize(form.description)
-    const duration = sanitize(form.duration)
+    const title = form.title.trim()
+    const description = form.description.trim()
+    const duration = form.duration.trim()
 
     if (editingId) {
       setEvents((prev) =>
@@ -185,7 +188,7 @@ export default function AdminEvents() {
             <Input label="Vrijeme *" type="time" value={form.time} onChange={(v) => updateField('time', v)} error={errors.time} />
             <Input label="Cijena (€) *" type="number" value={form.pricePerTicket} onChange={(v) => updateField('pricePerTicket', v)} error={errors.pricePerTicket} />
             <Input label="Ukupno mjesta *" type="number" value={form.totalSeats} onChange={(v) => updateField('totalSeats', v)} error={errors.totalSeats} />
-            <Input label="Trajanje" value={form.duration} onChange={(v) => updateField('duration', v)} placeholder="npr. 2h 30min" />
+            <Input label="Trajanje" value={form.duration} onChange={(v) => updateField('duration', v)} placeholder="npr. 2h 30min" error={errors.duration} />
             <Input label="Slika URL" value={form.imageUrl} onChange={(v) => updateField('imageUrl', v)} />
             <div className="sm:col-span-2">
               <label className="block text-sm font-medium text-text-secondary">Opis</label>
@@ -193,8 +196,11 @@ export default function AdminEvents() {
                 value={form.description}
                 onChange={(e) => updateField('description', e.target.value)}
                 rows={3}
-                className="mt-1 w-full resize-none rounded-sm border border-border bg-base-light px-3 py-2 text-sm text-text-primary outline-none focus:border-gold"
+                className={`mt-1 w-full resize-none rounded-sm border bg-base-light px-3 py-2 text-sm text-text-primary outline-none focus:border-gold ${
+                  errors.description ? 'border-accent-red' : 'border-border'
+                }`}
               />
+              {errors.description && <p className="mt-1 text-xs text-accent-red">{errors.description}</p>}
             </div>
           </div>
           <div className="mt-4 flex gap-3">
