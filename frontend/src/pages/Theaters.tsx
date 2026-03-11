@@ -1,7 +1,16 @@
+import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { mockTheaters } from '../lib/mockData'
+import { SkeletonCard } from '../components/Skeleton'
 
 export default function Theaters() {
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    const t = setTimeout(() => setLoading(false), 350)
+    return () => clearTimeout(t)
+  }, [])
+
   return (
     <div className="mx-auto max-w-7xl px-5 py-8 md:px-8">
       <div className="mb-8">
@@ -12,9 +21,11 @@ export default function Theaters() {
       </div>
 
       <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
-        {mockTheaters.map((theater) => (
+        {loading
+          ? Array.from({ length: 4 }).map((_, i) => <SkeletonCard key={i} />)
+          : mockTheaters.map((theater, i) => (
+          <div key={theater.id} className="animate-stagger-in" style={{ animationDelay: `${i * 80}ms` }}>
           <Link
-            key={theater.id}
             to={`/theaters/${theater.id}`}
             className="group flex flex-col rounded-sm border border-border bg-surface p-6 transition-all hover:border-border-strong hover:shadow-lg hover:shadow-gold/5"
           >
@@ -58,6 +69,7 @@ export default function Theaters() {
               </svg>
             </div>
           </Link>
+          </div>
         ))}
       </div>
     </div>

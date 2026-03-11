@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { mockReservations } from '../lib/mockData'
 import toast from 'react-hot-toast'
 import type { Reservation } from '../types'
@@ -6,9 +6,15 @@ import type { Reservation } from '../types'
 type FilterStatus = 'all' | 'confirmed' | 'cancelled'
 
 export default function Reservations() {
+  const [loading, setLoading] = useState(true)
   const [reservations, setReservations] = useState<Reservation[]>(mockReservations)
   const [filter, setFilter] = useState<FilterStatus>('all')
   const [expandedId, setExpandedId] = useState<string | null>(null)
+
+  useEffect(() => {
+    const t = setTimeout(() => setLoading(false), 350)
+    return () => clearTimeout(t)
+  }, [])
 
   const filtered = reservations
     .filter((r) => filter === 'all' || r.status === filter)
@@ -65,7 +71,14 @@ export default function Reservations() {
 
       {/* Reservation list */}
       <div className="mt-6 space-y-3">
-        {filtered.length === 0 ? (
+        {loading ? (
+          Array.from({ length: 4 }).map((_, i) => (
+            <div key={i} className="animate-pulse rounded-sm border border-border bg-surface p-5">
+              <div className="h-5 w-2/3 rounded-sm bg-base-lighter" />
+              <div className="mt-2 h-4 w-1/2 rounded-sm bg-base-lighter" />
+            </div>
+          ))
+        ) : filtered.length === 0 ? (
           <div className="rounded-sm border border-border bg-surface p-10 text-center">
             <svg
               className="mx-auto h-12 w-12 text-text-muted/40"
@@ -88,7 +101,7 @@ export default function Reservations() {
           filtered.map((reservation, i) => (
             <div
               key={reservation.id}
-              className="overflow-hidden rounded-sm border border-border bg-surface transition-colors hover:border-border-strong"
+              className="animate-stagger-in overflow-hidden rounded-sm border border-border bg-surface transition-colors hover:border-border-strong"
               style={{ animationDelay: `${i * 60}ms` }}
             >
               {/* Accordion header */}
