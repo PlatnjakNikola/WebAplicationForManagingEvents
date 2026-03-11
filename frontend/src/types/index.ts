@@ -51,6 +51,7 @@ export interface Review {
   id: string
   userId: string
   userName: string
+  userEmail: string
   eventId: string
   eventTitle: string
   theaterName: string

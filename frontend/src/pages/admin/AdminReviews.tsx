@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { mockReviews } from '../../lib/mockData'
 
 function Stars({ rating }: { rating: number }) {
@@ -18,9 +19,15 @@ function Stars({ rating }: { rating: number }) {
 }
 
 export default function AdminReviews() {
+  const [expandedId, setExpandedId] = useState<string | null>(null)
+
   const reviews = [...mockReviews].sort(
     (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
   )
+
+  function toggleExpand(id: string) {
+    setExpandedId((prev) => (prev === id ? null : id))
+  }
 
   return (
     <div className="mx-auto max-w-7xl px-5 py-8 md:px-8">
@@ -44,20 +51,56 @@ export default function AdminReviews() {
           </thead>
           <tbody>
             {reviews.map((r) => (
-              <tr key={r.id} className="border-b border-border/50 transition-colors hover:bg-surface">
-                <td className="py-3 pl-3 pr-4 font-medium text-text-primary">{r.userName}</td>
-                <td className="py-3 pr-4 text-text-secondary">{r.eventTitle}</td>
-                <td className="py-3 pr-4 text-text-secondary">{r.theaterName}</td>
-                <td className="py-3 pr-4">
-                  <Stars rating={r.rating} />
-                </td>
-                <td className="max-w-xs truncate py-3 pr-4 text-text-secondary">
-                  {r.comment || '—'}
-                </td>
-                <td className="py-3 pr-3 text-text-muted">
-                  {new Date(r.createdAt).toLocaleDateString('hr-HR')}
-                </td>
-              </tr>
+              <>
+                <tr
+                  key={r.id}
+                  onClick={() => toggleExpand(r.id)}
+                  className={`cursor-pointer border-b transition-colors hover:bg-surface ${expandedId === r.id ? 'border-border bg-surface' : 'border-border/50'}`}
+                >
+                  <td className="py-3 pl-3 pr-4 font-medium text-text-primary">{r.userName}</td>
+                  <td className="py-3 pr-4 text-text-secondary">{r.eventTitle}</td>
+                  <td className="py-3 pr-4 text-text-secondary">{r.theaterName}</td>
+                  <td className="py-3 pr-4">
+                    <Stars rating={r.rating} />
+                  </td>
+                  <td className="max-w-xs truncate py-3 pr-4 text-text-secondary">
+                    {r.comment || '—'}
+                  </td>
+                  <td className="py-3 pr-3 text-text-muted">
+                    {new Date(r.createdAt).toLocaleDateString('hr-HR')}
+                  </td>
+                </tr>
+                {expandedId === r.id && (
+                  <tr key={`${r.id}-detail`} className="border-b border-border/50">
+                    <td colSpan={6} className="bg-base-light px-6 py-4">
+                      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+                        <div>
+                          <p className="text-xs font-medium uppercase text-text-muted">Korisnik</p>
+                          <p className="mt-1 text-sm text-text-primary">{r.userName}</p>
+                          <p className="text-xs text-text-muted">{r.userEmail}</p>
+                        </div>
+                        <div>
+                          <p className="text-xs font-medium uppercase text-text-muted">Događaj</p>
+                          <p className="mt-1 text-sm text-text-primary">{r.eventTitle}</p>
+                          <p className="text-xs text-text-muted">{r.theaterName}</p>
+                        </div>
+                        <div>
+                          <p className="text-xs font-medium uppercase text-text-muted">Detalji</p>
+                          <p className="mt-1 text-sm text-text-primary">
+                            Ocjena: {r.rating}/5 · {new Date(r.createdAt).toLocaleString('hr-HR')}
+                          </p>
+                        </div>
+                      </div>
+                      {r.comment && (
+                        <div className="mt-3">
+                          <p className="text-xs font-medium uppercase text-text-muted">Komentar</p>
+                          <p className="mt-1 text-sm text-text-secondary">{r.comment}</p>
+                        </div>
+                      )}
+                    </td>
+                  </tr>
+                )}
+              </>
             ))}
           </tbody>
         </table>
@@ -66,7 +109,11 @@ export default function AdminReviews() {
       {/* Mobile cards */}
       <div className="mt-6 space-y-3 md:hidden">
         {reviews.map((r) => (
-          <div key={r.id} className="rounded-sm border border-border bg-surface p-4">
+          <div
+            key={r.id}
+            onClick={() => toggleExpand(r.id)}
+            className={`cursor-pointer rounded-sm border bg-surface p-4 transition-colors ${expandedId === r.id ? 'border-gold/30' : 'border-border'}`}
+          >
             <div className="flex items-start justify-between">
               <div>
                 <h3 className="font-display font-semibold text-text-primary">{r.eventTitle}</h3>
@@ -77,8 +124,20 @@ export default function AdminReviews() {
             <p className="mt-1 text-xs text-text-secondary">
               {r.userName} · {new Date(r.createdAt).toLocaleDateString('hr-HR')}
             </p>
-            {r.comment && (
-              <p className="mt-2 text-sm text-text-secondary">{r.comment}</p>
+            {expandedId === r.id ? (
+              <div className="mt-3 space-y-2 border-t border-border/50 pt-3">
+                <p className="text-xs text-text-muted">{r.userEmail}</p>
+                <p className="text-xs text-text-muted">
+                  Datum: {new Date(r.createdAt).toLocaleString('hr-HR')}
+                </p>
+                {r.comment && (
+                  <p className="text-sm text-text-secondary">{r.comment}</p>
+                )}
+              </div>
+            ) : (
+              r.comment && (
+                <p className="mt-2 truncate text-sm text-text-secondary">{r.comment}</p>
+              )
             )}
           </div>
         ))}
