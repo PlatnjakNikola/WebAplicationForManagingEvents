@@ -140,9 +140,29 @@ export default function AdminEvents() {
     toast.success('Događaj je obrisan.')
   }
 
+  function validateField(field: string, value: string): string | undefined {
+    if (field === 'title' || field === 'description' || field === 'duration') {
+      if (hasDoubleSpaces(value)) return 'Ne smije imati duple razmake'
+    }
+    if (field === 'pricePerTicket' && value.trim()) {
+      const n = Number(value)
+      if (n < 1) return 'Cijena mora biti najmanje 1 €'
+      if (n > 9999) return 'Maksimalno 9999 €'
+    }
+    if (field === 'totalSeats' && value.trim()) {
+      const n = Number(value)
+      if (!Number.isInteger(n) || n < 1) return 'Mora biti najmanje 1 mjesto (cijeli broj)'
+      if (n > 99999) return 'Maksimalno 99999 mjesta'
+    }
+    return undefined
+  }
+
   function updateField(field: string, value: string) {
     setForm((prev) => ({ ...prev, [field]: value }))
-    if (errors[field as keyof FormErrors]) {
+    const err = validateField(field, value)
+    if (err) {
+      setErrors((prev) => ({ ...prev, [field]: err }))
+    } else if (errors[field as keyof FormErrors]) {
       setErrors((prev) => {
         const next = { ...prev }
         delete next[field as keyof FormErrors]
