@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import type { Event } from '../types'
 
 interface EventDetailModalProps {
@@ -109,6 +109,8 @@ function DetailContent({
   onClose: () => void
   onReserve: (event: Event) => void
 }) {
+  const [imgError, setImgError] = useState(false)
+
   return (
     <div className="px-6 pb-8">
       {/* Header */}
@@ -129,11 +131,28 @@ function DetailContent({
 
       {/* Image */}
       <div className="mt-5 overflow-hidden rounded-sm">
-        <img
-          src={event.imageUrl}
-          alt={event.title}
-          className="h-48 w-full object-cover"
-        />
+        {imgError ? (
+          <div className="flex h-48 w-full flex-col items-center justify-center gap-2 bg-surface">
+            <svg className="h-16 w-16 text-gold/15" viewBox="0 0 64 64" fill="none" stroke="currentColor" strokeWidth={1.5}>
+              <path d="M10 14c0-2 2-4 4-4h10c2 0 4 2 4 4v12c0 6-4 10-9 10s-9-4-9-10V14z" fill="currentColor" fillOpacity={0.3} />
+              <circle cx="17" cy="20" r="1.5" fill="currentColor" fillOpacity={0.6} />
+              <circle cx="25" cy="20" r="1.5" fill="currentColor" fillOpacity={0.6} />
+              <path d="M16 27c0 0 2.5 3 5 3s5-3 5-3" strokeWidth={1.5} strokeLinecap="round" />
+              <path d="M36 18c0-2 2-4 4-4h10c2 0 4 2 4 4v12c0 6-4 10-9 10s-9-4-9-10V18z" fill="currentColor" fillOpacity={0.2} />
+              <circle cx="43" cy="24" r="1.5" fill="currentColor" fillOpacity={0.6} />
+              <circle cx="51" cy="24" r="1.5" fill="currentColor" fillOpacity={0.6} />
+              <path d="M42 33c0 0 2.5-3 5-3s5 3 5 3" strokeWidth={1.5} strokeLinecap="round" />
+            </svg>
+            <span className="text-xs text-text-muted/30">Slika nedostupna</span>
+          </div>
+        ) : (
+          <img
+            src={event.imageUrl}
+            alt={event.title}
+            onError={() => setImgError(true)}
+            className="h-48 w-full object-cover"
+          />
+        )}
       </div>
 
       {/* Description */}
