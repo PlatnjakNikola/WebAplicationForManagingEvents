@@ -3,8 +3,6 @@ import { mockEvents, mockTheaters } from '../../lib/mockData'
 import toast from 'react-hot-toast'
 import type { Event } from '../../types'
 
-const HOURS = Array.from({ length: 24 }, (_, i) => String(i).padStart(2, '0'))
-const MINUTES = ['00', '15', '30', '45']
 
 const emptyForm = {
   title: '',
@@ -28,6 +26,23 @@ function hasDoubleSpaces(value: string): boolean {
 function formatDate(dateStr: string): string {
   const [y, m, d] = dateStr.split('-')
   return `${d}.${m}.${y}.`
+}
+
+function parseDurationToMinutes(dur: string): string {
+  const hMatch = dur.match(/(\d+)\s*h/)
+  const mMatch = dur.match(/(\d+)\s*min/)
+  const hours = hMatch ? Number(hMatch[1]) : 0
+  const mins = mMatch ? Number(mMatch[1]) : 0
+  const total = hours * 60 + mins
+  return total > 0 ? String(total) : dur
+}
+
+function formatDuration(minutes: number): string {
+  const h = Math.floor(minutes / 60)
+  const m = minutes % 60
+  if (h > 0 && m > 0) return `${h}h ${m}min`
+  if (h > 0) return `${h}h`
+  return `${m}min`
 }
 
 function todayStr(): string {
@@ -60,7 +75,7 @@ export default function AdminEvents() {
       timeMinute: (event.time || '').split(':')[1] || '',
       pricePerTicket: String(event.pricePerTicket),
       totalSeats: String(event.totalSeats),
-      duration: event.duration,
+      duration: parseDurationToMinutes(event.duration),
       imageUrl: event.imageUrl,
     })
     setErrors({})
@@ -75,7 +90,10 @@ export default function AdminEvents() {
     if (!form.theaterId) errs.theaterId = 'Kazalište je obavezno'
     if (!form.date) errs.date = 'Datum je obavezan'
     else if (form.date < today) errs.date = 'Datum ne smije biti u prošlosti'
+    const h = Number(form.timeHour), m = Number(form.timeMinute)
     if (!form.timeHour || !form.timeMinute) errs.timeHour = 'Vrijeme je obavezno'
+    else if (h < 0 || h > 23 || !Number.isInteger(h)) errs.timeHour = 'Sat: 0–23'
+    else if (m < 0 || m > 59 || !Number.isInteger(m)) errs.timeHour = 'Minute: 0–59'
     const price = Number(form.pricePerTicket)
     if (!form.pricePerTicket.trim()) errs.pricePerTicket = 'Cijena je obavezna'
     else if (price < 1) errs.pricePerTicket = 'Cijena mora biti najmanje 1 €'
@@ -86,7 +104,10 @@ export default function AdminEvents() {
     else if (!Number.isInteger(seats) || seats < 1) errs.totalSeats = 'Mora biti najmanje 1 mjesto (cijeli broj)'
     else if (seats > 99999) errs.totalSeats = 'Maksimalno 99999 mjesta'
     if (form.description.trim() && hasDoubleSpaces(form.description)) errs.description = 'Opis ne smije imati duple razmake'
-    if (form.duration.trim() && hasDoubleSpaces(form.duration)) errs.duration = 'Trajanje ne smije imati duple razmake'
+    const dur = Number(form.duration)
+    if (!form.duration.trim()) errs.duration = 'Trajanje je obavezno'
+    else if (dur < 1) errs.duration = 'Trajanje mora biti veće od 0'
+    else if (!Number.isInteger(dur)) errs.duration = 'Trajanje mora biti cijeli broj'
     return errs
   }
 
@@ -103,7 +124,7 @@ export default function AdminEvents() {
     const totalSeats = Number(form.totalSeats)
     const title = form.title.trim()
     const description = form.description.trim()
-    const duration = form.duration.trim()
+    const duration = formatDuration(Number(form.duration))
 
     if (editingId) {
       setEvents((prev) =>
@@ -134,7 +155,7 @@ export default function AdminEvents() {
         theaterId: form.theaterId,
         theaterName: theater?.name || '',
         date: form.date,
-        time: form.time.trim(),
+        time: `${form.timeHour}:${form.timeMinute}`,
         pricePerTicket: Number(form.pricePerTicket),
         totalSeats,
         availableSeats: totalSeats,
@@ -207,85 +228,93 @@ export default function AdminEvents() {
       </div>
 
       {showForm && (
-        <form onSubmit={handleSubmit} className="mt-6 rounded-sm border border-border-strong bg-surface p-5">
+        <form onSubmit={handleSubmit} className="mt-6 rounded-sm border border-border-strong bg-surface p-6">
           <h2 className="font-display text-lg font-semibold text-text-primary">
             {editingId ? 'Uredi događaj' : 'Novi događaj'}
           </h2>
-          <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <Input label="Naziv *" value={form.title} onChange={(v) => updateField('title', v)} error={errors.title} maxLength={100} />
-            <div>
-              <label className="block text-sm font-medium text-text-secondary">Kazalište *</label>
-              <select
-                value={form.theaterId}
-                onChange={(e) => updateField('theaterId', e.target.value)}
-                className={`mt-1 w-full rounded-sm border bg-base-light px-3 py-2 text-sm text-text-primary outline-none focus:border-gold ${
-                  errors.theaterId ? 'border-accent-red' : 'border-border'
-                }`}
-              >
-                <option value="">Odaberite...</option>
-                {mockTheaters.map((t) => (
-                  <option key={t.id} value={t.id}>{t.name}</option>
-                ))}
-              </select>
-              {errors.theaterId && <p className="mt-1 text-xs text-accent-red">{errors.theaterId}</p>}
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-text-secondary">Datum * <span className="font-normal text-text-muted">(dd.mm.yyyy.)</span></label>
-              <input
-                type="date"
-                value={form.date}
-                min={today}
-                onChange={(e) => updateField('date', e.target.value)}
-                className={`mt-1 w-full rounded-sm border bg-base-light px-3 py-2 text-sm text-text-primary outline-none focus:border-gold [color-scheme:dark] ${
-                  errors.date ? 'border-accent-red' : 'border-border'
-                }`}
-              />
-              {errors.date && <p className="mt-1 text-xs text-accent-red">{errors.date}</p>}
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-text-secondary">Vrijeme *</label>
-              <div className={`mt-1 flex items-center rounded-sm border bg-base-light ${
-                errors.timeHour ? 'border-accent-red' : 'border-border'
-              }`}>
-                <svg className="ml-3 h-4 w-4 shrink-0 text-text-muted" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
-                </svg>
+          <div className="mt-5 space-y-5">
+            {/* Red 1: Naziv | Kazalište */}
+            <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
+              <Input label="Naziv *" value={form.title} onChange={(v) => updateField('title', v)} error={errors.title} maxLength={100} />
+              <div>
+                <label className="block text-sm font-medium text-text-secondary">Kazalište *</label>
                 <select
-                  value={form.timeHour}
-                  onChange={(e) => updateField('timeHour', e.target.value)}
-                  className="w-full bg-transparent px-2 py-2 text-sm text-text-primary outline-none"
+                  value={form.theaterId}
+                  onChange={(e) => updateField('theaterId', e.target.value)}
+                  className={`mt-1.5 w-full rounded-sm border bg-base-light px-3 py-2.5 text-sm text-text-primary outline-none focus:border-gold ${
+                    errors.theaterId ? 'border-accent-red' : 'border-border'
+                  }`}
                 >
-                  <option value="">Sat</option>
-                  {HOURS.map((h) => (
-                    <option key={h} value={h}>{h}</option>
+                  <option value="">Odaberite...</option>
+                  {mockTheaters.map((t) => (
+                    <option key={t.id} value={t.id}>{t.name}</option>
                   ))}
                 </select>
-                <span className="text-sm font-medium text-text-muted">:</span>
-                <select
-                  value={form.timeMinute}
-                  onChange={(e) => updateField('timeMinute', e.target.value)}
-                  className="w-full bg-transparent px-2 py-2 text-sm text-text-primary outline-none"
-                >
-                  <option value="">Min</option>
-                  {MINUTES.map((m) => (
-                    <option key={m} value={m}>{m}</option>
-                  ))}
-                </select>
+                {errors.theaterId && <p className="mt-1 text-xs text-accent-red">{errors.theaterId}</p>}
               </div>
-              {errors.timeHour && <p className="mt-1 text-xs text-accent-red">{errors.timeHour}</p>}
             </div>
-            <Input label="Cijena (€) *" type="number" value={form.pricePerTicket} onChange={(v) => updateField('pricePerTicket', v)} error={errors.pricePerTicket} min="1" max="9999" />
-            <Input label="Ukupno mjesta *" type="number" value={form.totalSeats} onChange={(v) => updateField('totalSeats', v)} error={errors.totalSeats} min="1" max="99999" />
-            <Input label="Trajanje" value={form.duration} onChange={(v) => updateField('duration', v)} placeholder="npr. 2h 30min" error={errors.duration} maxLength={20} />
-            <Input label="Slika URL" value={form.imageUrl} onChange={(v) => updateField('imageUrl', v)} maxLength={500} />
-            <div className="sm:col-span-2">
+
+            {/* Red 2: Datum | Vrijeme (sat : min) | Trajanje | Cijena */}
+            <div className="grid grid-cols-1 gap-5 sm:grid-cols-4">
+              <div>
+                <label className="block text-sm font-medium text-text-secondary">Datum * <span className="font-normal text-text-muted">(dd.mm.yyyy.)</span></label>
+                <input
+                  type="date"
+                  value={form.date}
+                  min={today}
+                  onChange={(e) => updateField('date', e.target.value)}
+                  className={`mt-1.5 w-full rounded-sm border bg-base-light px-3 py-2.5 text-sm text-text-primary outline-none focus:border-gold [color-scheme:dark] ${
+                    errors.date ? 'border-accent-red' : 'border-border'
+                  }`}
+                />
+                {errors.date && <p className="mt-1 text-xs text-accent-red">{errors.date}</p>}
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-text-secondary">Vrijeme *</label>
+                <div className={`mt-1.5 flex items-center gap-2 rounded-sm border bg-base-light px-3 py-2.5 ${
+                  errors.timeHour ? 'border-accent-red' : 'border-border'
+                }`}>
+                  <input
+                    type="text"
+                    inputMode="numeric"
+                    maxLength={2}
+                    placeholder="HH"
+                    value={form.timeHour}
+                    onChange={(e) => { const v = e.target.value.replace(/\D/g, '').slice(0, 2); updateField('timeHour', v) }}
+                    className="w-full bg-transparent text-center text-sm text-text-primary outline-none placeholder:text-text-muted/50"
+                  />
+                  <span className="text-base font-semibold text-text-muted">:</span>
+                  <input
+                    type="text"
+                    inputMode="numeric"
+                    maxLength={2}
+                    placeholder="MM"
+                    value={form.timeMinute}
+                    onChange={(e) => { const v = e.target.value.replace(/\D/g, '').slice(0, 2); updateField('timeMinute', v) }}
+                    className="w-full bg-transparent text-center text-sm text-text-primary outline-none placeholder:text-text-muted/50"
+                  />
+                </div>
+                {errors.timeHour && <p className="mt-1 text-xs text-accent-red">{errors.timeHour}</p>}
+              </div>
+              <Input label="Trajanje * (min)" type="number" value={form.duration} onChange={(v) => updateField('duration', v)} error={errors.duration} min="1" />
+              <Input label="Cijena (€) *" type="number" value={form.pricePerTicket} onChange={(v) => updateField('pricePerTicket', v)} error={errors.pricePerTicket} min="1" max="9999" />
+            </div>
+
+            {/* Red 3: Ukupno mjesta | Slika URL (širi) */}
+            <div className="grid grid-cols-1 gap-5 sm:grid-cols-[1fr_3fr]">
+              <Input label="Ukupno mjesta *" type="number" value={form.totalSeats} onChange={(v) => updateField('totalSeats', v)} error={errors.totalSeats} min="1" max="99999" />
+              <Input label="Slika URL" value={form.imageUrl} onChange={(v) => updateField('imageUrl', v)} maxLength={500} />
+            </div>
+
+            {/* Red 4: Opis */}
+            <div>
               <label className="block text-sm font-medium text-text-secondary">Opis</label>
               <textarea
                 value={form.description}
                 onChange={(e) => updateField('description', e.target.value)}
                 rows={3}
                 maxLength={500}
-                className={`mt-1 w-full resize-none rounded-sm border bg-base-light px-3 py-2 text-sm text-text-primary outline-none focus:border-gold ${
+                className={`mt-1.5 w-full resize-none rounded-sm border bg-base-light px-3 py-2.5 text-sm text-text-primary outline-none focus:border-gold ${
                   errors.description ? 'border-accent-red' : 'border-border'
                 }`}
               />
@@ -361,7 +390,7 @@ function Input({ label, value, onChange, type = 'text', placeholder, error, min,
     <div>
       <label className="block text-sm font-medium text-text-secondary">{label}</label>
       <input type={type} value={value} onChange={(e) => onChange(e.target.value)} placeholder={placeholder} min={min} max={max} maxLength={maxLength}
-        className={`mt-1 w-full rounded-sm border bg-base-light px-3 py-2 text-sm text-text-primary outline-none focus:border-gold ${
+        className={`mt-1.5 w-full rounded-sm border bg-base-light px-3 py-2.5 text-sm text-text-primary outline-none focus:border-gold ${
           type === 'number' ? '[appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none' : ''
         } ${error ? 'border-accent-red' : 'border-border'}`} />
       {error && <p className="mt-1 text-xs text-accent-red">{error}</p>}
