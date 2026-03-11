@@ -241,7 +241,7 @@ export default function AdminEvents() {
                 <select
                   value={form.theaterId}
                   onChange={(e) => updateField('theaterId', e.target.value)}
-                  className={`mt-1.5 w-full rounded-sm border bg-base-light px-3 py-2.5 text-sm text-text-primary outline-none focus:border-gold ${
+                  className={`mt-1.5 h-[42px] w-full rounded-sm border bg-base-light px-3 text-sm text-text-primary outline-none focus:border-gold ${
                     errors.theaterId ? 'border-accent-red' : 'border-border'
                   }`}
                 >
@@ -263,7 +263,7 @@ export default function AdminEvents() {
                   value={form.date}
                   min={today}
                   onChange={(e) => updateField('date', e.target.value)}
-                  className={`mt-1.5 w-full rounded-sm border bg-base-light px-3 py-2.5 text-sm text-text-primary outline-none focus:border-gold [color-scheme:dark] ${
+                  className={`mt-1.5 h-[42px] w-full rounded-sm border bg-base-light px-3 text-sm text-text-primary outline-none focus:border-gold [color-scheme:dark] ${
                     errors.date ? 'border-accent-red' : 'border-border'
                   }`}
                 />
@@ -271,7 +271,7 @@ export default function AdminEvents() {
               </div>
               <div>
                 <label className="block text-sm font-medium text-text-secondary">Vrijeme *</label>
-                <div className={`mt-1.5 flex items-center gap-2 rounded-sm border bg-base-light px-3 py-2.5 ${
+                <div className={`mt-1.5 flex h-[42px] items-center gap-2 rounded-sm border bg-base-light px-3 ${
                   errors.timeHour ? 'border-accent-red' : 'border-border'
                 }`}>
                   <input
@@ -300,10 +300,12 @@ export default function AdminEvents() {
               <Input label="Cijena (€) *" type="number" value={form.pricePerTicket} onChange={(v) => updateField('pricePerTicket', v)} error={errors.pricePerTicket} min="1" max="9999" />
             </div>
 
-            {/* Red 3: Ukupno mjesta | Slika URL (širi) */}
-            <div className="grid grid-cols-1 gap-5 sm:grid-cols-[1fr_3fr]">
+            {/* Red 3: Ukupno mjesta (širina kao Datum) | Slika URL (ostatak) */}
+            <div className="grid grid-cols-1 gap-5 sm:grid-cols-4">
               <Input label="Ukupno mjesta *" type="number" value={form.totalSeats} onChange={(v) => updateField('totalSeats', v)} error={errors.totalSeats} min="1" max="99999" />
-              <Input label="Slika URL" value={form.imageUrl} onChange={(v) => updateField('imageUrl', v)} maxLength={500} />
+              <div className="sm:col-span-3">
+                <Input label="Slika URL" value={form.imageUrl} onChange={(v) => updateField('imageUrl', v)} maxLength={500} />
+              </div>
             </div>
 
             {/* Red 4: Opis */}
@@ -390,7 +392,7 @@ function Input({ label, value, onChange, type = 'text', placeholder, error, min,
     <div>
       <label className="block text-sm font-medium text-text-secondary">{label}</label>
       <input type={type} value={value} onChange={(e) => onChange(e.target.value)} placeholder={placeholder} min={min} max={max} maxLength={maxLength}
-        className={`mt-1.5 w-full rounded-sm border bg-base-light px-3 py-2.5 text-sm text-text-primary outline-none focus:border-gold ${
+        className={`mt-1.5 h-[42px] w-full rounded-sm border bg-base-light px-3 text-sm text-text-primary outline-none focus:border-gold ${
           type === 'number' ? '[appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none' : ''
         } ${error ? 'border-accent-red' : 'border-border'}`} />
       {error && <p className="mt-1 text-xs text-accent-red">{error}</p>}
