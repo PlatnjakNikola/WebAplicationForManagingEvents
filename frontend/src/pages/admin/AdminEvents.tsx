@@ -21,12 +21,23 @@ function hasDoubleSpaces(value: string): boolean {
   return /\s{2,}/.test(value)
 }
 
+function formatDate(dateStr: string): string {
+  const [y, m, d] = dateStr.split('-')
+  return `${d}.${m}.${y}.`
+}
+
+function todayStr(): string {
+  const d = new Date()
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+}
+
 export default function AdminEvents() {
   const [events, setEvents] = useState<Event[]>(mockEvents)
   const [showForm, setShowForm] = useState(false)
   const [editingId, setEditingId] = useState<string | null>(null)
   const [form, setForm] = useState(emptyForm)
   const [errors, setErrors] = useState<FormErrors>({})
+  const today = todayStr()
 
   function openAdd() {
     setForm(emptyForm)
@@ -58,6 +69,7 @@ export default function AdminEvents() {
     else if (hasDoubleSpaces(form.title)) errs.title = 'Naziv ne smije imati duple razmake'
     if (!form.theaterId) errs.theaterId = 'Kazalište je obavezno'
     if (!form.date) errs.date = 'Datum je obavezan'
+    else if (form.date < today) errs.date = 'Datum ne smije biti u prošlosti'
     if (!form.time.trim()) errs.time = 'Vrijeme je obavezno'
     const price = Number(form.pricePerTicket)
     if (!form.pricePerTicket.trim()) errs.pricePerTicket = 'Cijena je obavezna'
@@ -141,6 +153,7 @@ export default function AdminEvents() {
   }
 
   function validateField(field: string, value: string): string | undefined {
+    if (field === 'date' && value && value < today) return 'Datum ne smije biti u prošlosti'
     if (field === 'title' || field === 'description' || field === 'duration') {
       if (hasDoubleSpaces(value)) return 'Ne smije imati duple razmake'
     }
@@ -211,7 +224,19 @@ export default function AdminEvents() {
               </select>
               {errors.theaterId && <p className="mt-1 text-xs text-accent-red">{errors.theaterId}</p>}
             </div>
-            <Input label="Datum *" type="date" value={form.date} onChange={(v) => updateField('date', v)} error={errors.date} />
+            <div>
+              <label className="block text-sm font-medium text-text-secondary">Datum * <span className="font-normal text-text-muted">(dd.mm.yyyy.)</span></label>
+              <input
+                type="date"
+                value={form.date}
+                min={today}
+                onChange={(e) => updateField('date', e.target.value)}
+                className={`mt-1 w-full rounded-sm border bg-base-light px-3 py-2 text-sm text-text-primary outline-none focus:border-gold [color-scheme:dark] ${
+                  errors.date ? 'border-accent-red' : 'border-border'
+                }`}
+              />
+              {errors.date && <p className="mt-1 text-xs text-accent-red">{errors.date}</p>}
+            </div>
             <Input label="Vrijeme *" type="time" value={form.time} onChange={(v) => updateField('time', v)} error={errors.time} />
             <Input label="Cijena (€) *" type="number" value={form.pricePerTicket} onChange={(v) => updateField('pricePerTicket', v)} error={errors.pricePerTicket} min="1" max="9999" />
             <Input label="Ukupno mjesta *" type="number" value={form.totalSeats} onChange={(v) => updateField('totalSeats', v)} error={errors.totalSeats} min="1" max="99999" />
@@ -258,7 +283,7 @@ export default function AdminEvents() {
               <tr key={event.id} className="border-b border-border/50 transition-colors hover:bg-surface">
                 <td className="py-3 pl-3 pr-4 font-medium text-text-primary">{event.title}</td>
                 <td className="py-3 pr-4 text-text-secondary">{event.theaterName}</td>
-                <td className="py-3 pr-4 text-text-secondary">{event.date}</td>
+                <td className="py-3 pr-4 text-text-secondary">{formatDate(event.date)}</td>
                 <td className="py-3 pr-4 text-gold">{event.pricePerTicket} €</td>
                 <td className="py-3 pr-4 text-text-secondary">{event.availableSeats}/{event.totalSeats}</td>
                 <td className="py-3 pr-3 text-right">
@@ -277,7 +302,7 @@ export default function AdminEvents() {
             <div className="flex items-start justify-between">
               <div>
                 <h3 className="font-display font-semibold text-text-primary">{event.title}</h3>
-                <p className="mt-0.5 text-xs text-text-muted">{event.theaterName} · {event.date}</p>
+                <p className="mt-0.5 text-xs text-text-muted">{event.theaterName} · {formatDate(event.date)}</p>
               </div>
               <span className="text-sm font-medium text-gold">{event.pricePerTicket} €</span>
             </div>
