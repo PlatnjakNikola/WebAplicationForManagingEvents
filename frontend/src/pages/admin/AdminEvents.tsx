@@ -56,7 +56,32 @@ export default function AdminEvents() {
   const [editingId, setEditingId] = useState<string | null>(null)
   const [form, setForm] = useState(emptyForm)
   const [errors, setErrors] = useState<FormErrors>({})
+  const [selected, setSelected] = useState<Set<string>>(new Set())
   const today = todayStr()
+
+  const allSelected = events.length > 0 && selected.size === events.length
+
+  function toggleSelect(id: string) {
+    setSelected((prev) => {
+      const next = new Set(prev)
+      if (next.has(id)) next.delete(id)
+      else next.add(id)
+      return next
+    })
+  }
+
+  function toggleSelectAll() {
+    if (allSelected) setSelected(new Set())
+    else setSelected(new Set(events.map((e) => e.id)))
+  }
+
+  function handleBulkDelete() {
+    if (selected.size === 0) return
+    if (!window.confirm(`Obrisati ${selected.size} odabranih događaja?`)) return
+    setEvents((prev) => prev.filter((ev) => !selected.has(ev.id)))
+    toast.success(`Obrisano ${selected.size} događaja.`)
+    setSelected(new Set())
+  }
 
   function openAdd() {
     setForm(emptyForm)
@@ -175,6 +200,7 @@ export default function AdminEvents() {
   function handleDelete(id: string) {
     if (!window.confirm('Obrisati ovaj događaj?')) return
     setEvents((prev) => prev.filter((ev) => ev.id !== id))
+    setSelected((prev) => { const next = new Set(prev); next.delete(id); return next })
     toast.success('Događaj je obrisan.')
   }
 
@@ -219,12 +245,22 @@ export default function AdminEvents() {
           </h1>
           <p className="mt-1 text-sm text-text-muted">{events.length} događaja</p>
         </div>
-        <button
-          onClick={openAdd}
-          className="rounded-sm bg-gold px-5 py-2.5 text-sm font-semibold text-base transition-colors hover:bg-gold-light"
-        >
-          + Dodaj događaj
-        </button>
+        <div className="flex items-center gap-3">
+          {selected.size > 0 && (
+            <button
+              onClick={handleBulkDelete}
+              className="rounded-sm border border-accent-red/30 bg-accent-red/10 px-4 py-2.5 text-sm font-semibold text-accent-red transition-colors hover:bg-accent-red/20"
+            >
+              Obriši odabrane ({selected.size})
+            </button>
+          )}
+          <button
+            onClick={openAdd}
+            className="rounded-sm bg-gold px-5 py-2.5 text-sm font-semibold text-base transition-colors hover:bg-gold-light"
+          >
+            + Dodaj događaj
+          </button>
+        </div>
       </div>
 
       {showForm && (
@@ -343,12 +379,16 @@ export default function AdminEvents() {
               <th className="py-3 pr-4">Datum</th>
               <th className="py-3 pr-4">Cijena</th>
               <th className="py-3 pr-4">Mjesta</th>
-              <th className="py-3 pr-3 text-right">Akcije</th>
+              <th className="py-3 pr-3 text-right">
+                <span className="mr-3">Akcije</span>
+                <input type="checkbox" checked={allSelected} onChange={toggleSelectAll}
+                  className="h-4 w-4 cursor-pointer rounded-sm border-border accent-gold align-middle opacity-50 hover:opacity-100 transition-opacity" />
+              </th>
             </tr>
           </thead>
           <tbody>
             {events.map((event) => (
-              <tr key={event.id} className="border-b border-border/50 transition-colors hover:bg-surface">
+              <tr key={event.id} className={`border-b border-border/50 transition-colors hover:bg-surface ${selected.has(event.id) ? 'bg-gold/5' : ''}`}>
                 <td className="py-3 pl-3 pr-4 font-medium text-text-primary">{event.title}</td>
                 <td className="py-3 pr-4 text-text-secondary">{event.theaterName}</td>
                 <td className="py-3 pr-4 text-text-secondary">{formatDate(event.date)}</td>
@@ -356,7 +396,9 @@ export default function AdminEvents() {
                 <td className="py-3 pr-4 text-text-secondary">{event.availableSeats}/{event.totalSeats}</td>
                 <td className="py-3 pr-3 text-right">
                   <button onClick={() => openEdit(event)} className="mr-3 text-accent-blue hover:underline">Uredi</button>
-                  <button onClick={() => handleDelete(event.id)} className="text-accent-red hover:underline">Obriši</button>
+                  <button onClick={() => handleDelete(event.id)} className="mr-3 text-accent-red hover:underline">Obriši</button>
+                  <input type="checkbox" checked={selected.has(event.id)} onChange={() => toggleSelect(event.id)}
+                    className="h-4 w-4 cursor-pointer rounded-sm border-border accent-gold align-middle opacity-50 hover:opacity-100 transition-opacity" />
                 </td>
               </tr>
             ))}
@@ -366,7 +408,7 @@ export default function AdminEvents() {
 
       <div className="mt-6 space-y-3 md:hidden">
         {events.map((event) => (
-          <div key={event.id} className="rounded-sm border border-border bg-surface p-4">
+          <div key={event.id} className={`rounded-sm border bg-surface p-4 ${selected.has(event.id) ? 'border-gold/40 bg-gold/5' : 'border-border'}`}>
             <div className="flex items-start justify-between">
               <div>
                 <h3 className="font-display font-semibold text-text-primary">{event.title}</h3>
@@ -374,9 +416,11 @@ export default function AdminEvents() {
               </div>
               <span className="text-sm font-medium text-gold">{event.pricePerTicket} €</span>
             </div>
-            <div className="mt-3 flex gap-3">
+            <div className="mt-3 flex items-center gap-3">
               <button onClick={() => openEdit(event)} className="text-xs font-medium text-accent-blue hover:underline">Uredi</button>
               <button onClick={() => handleDelete(event.id)} className="text-xs font-medium text-accent-red hover:underline">Obriši</button>
+              <input type="checkbox" checked={selected.has(event.id)} onChange={() => toggleSelect(event.id)}
+                className="ml-auto h-4 w-4 cursor-pointer rounded-sm border-border accent-gold opacity-50 hover:opacity-100 transition-opacity" />
             </div>
           </div>
         ))}
