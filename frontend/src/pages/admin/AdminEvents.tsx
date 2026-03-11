@@ -175,23 +175,23 @@ export default function AdminEvents() {
         <table className="w-full text-left text-sm">
           <thead>
             <tr className="border-b border-border text-xs font-medium uppercase text-text-muted">
-              <th className="py-3 pr-4">Naziv</th>
+              <th className="py-3 pl-3 pr-4">Naziv</th>
               <th className="py-3 pr-4">Kazalište</th>
               <th className="py-3 pr-4">Datum</th>
               <th className="py-3 pr-4">Cijena</th>
               <th className="py-3 pr-4">Mjesta</th>
-              <th className="py-3 text-right">Akcije</th>
+              <th className="py-3 pr-3 text-right">Akcije</th>
             </tr>
           </thead>
           <tbody>
             {events.map((event) => (
               <tr key={event.id} className="border-b border-border/50 transition-colors hover:bg-surface">
-                <td className="py-3 pr-4 font-medium text-text-primary">{event.title}</td>
+                <td className="py-3 pl-3 pr-4 font-medium text-text-primary">{event.title}</td>
                 <td className="py-3 pr-4 text-text-secondary">{event.theaterName}</td>
                 <td className="py-3 pr-4 text-text-secondary">{event.date}</td>
                 <td className="py-3 pr-4 text-gold">{event.pricePerTicket} €</td>
                 <td className="py-3 pr-4 text-text-secondary">{event.availableSeats}/{event.totalSeats}</td>
-                <td className="py-3 text-right">
+                <td className="py-3 pr-3 text-right">
                   <button onClick={() => openEdit(event)} className="mr-3 text-accent-blue hover:underline">Uredi</button>
                   <button onClick={() => handleDelete(event.id)} className="text-accent-red hover:underline">Obriši</button>
                 </td>

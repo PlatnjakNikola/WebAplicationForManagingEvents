@@ -34,18 +34,18 @@ export default function AdminReviews() {
         <table className="w-full text-left text-sm">
           <thead>
             <tr className="border-b border-border text-xs font-medium uppercase text-text-muted">
-              <th className="py-3 pr-4">Korisnik</th>
+              <th className="py-3 pl-3 pr-4">Korisnik</th>
               <th className="py-3 pr-4">Događaj</th>
               <th className="py-3 pr-4">Kazalište</th>
               <th className="py-3 pr-4">Ocjena</th>
               <th className="py-3 pr-4">Komentar</th>
-              <th className="py-3">Datum</th>
+              <th className="py-3 pr-3">Datum</th>
             </tr>
           </thead>
           <tbody>
             {reviews.map((r) => (
               <tr key={r.id} className="border-b border-border/50 transition-colors hover:bg-surface">
-                <td className="py-3 pr-4 font-medium text-text-primary">{r.userName}</td>
+                <td className="py-3 pl-3 pr-4 font-medium text-text-primary">{r.userName}</td>
                 <td className="py-3 pr-4 text-text-secondary">{r.eventTitle}</td>
                 <td className="py-3 pr-4 text-text-secondary">{r.theaterName}</td>
                 <td className="py-3 pr-4">
@@ -54,7 +54,7 @@ export default function AdminReviews() {
                 <td className="max-w-xs truncate py-3 pr-4 text-text-secondary">
                   {r.comment || '—'}
                 </td>
-                <td className="py-3 text-text-muted">
+                <td className="py-3 pr-3 text-text-muted">
                   {new Date(r.createdAt).toLocaleDateString('hr-HR')}
                 </td>
               </tr>

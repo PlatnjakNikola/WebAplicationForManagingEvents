@@ -64,19 +64,19 @@ export default function AdminReservations() {
         <table className="w-full text-left text-sm">
           <thead>
             <tr className="border-b border-border text-xs font-medium uppercase text-text-muted">
-              <th className="py-3 pr-4">Događaj</th>
+              <th className="py-3 pl-3 pr-4">Događaj</th>
               <th className="py-3 pr-4">Kazalište</th>
               <th className="py-3 pr-4">Datum</th>
               <th className="py-3 pr-4">Karata</th>
               <th className="py-3 pr-4">Cijena</th>
               <th className="py-3 pr-4">Status</th>
-              <th className="py-3 text-right">Akcije</th>
+              <th className="py-3 pr-3 text-right">Akcije</th>
             </tr>
           </thead>
           <tbody>
             {filtered.map((r) => (
               <tr key={r.id} className="border-b border-border/50 transition-colors hover:bg-surface">
-                <td className="py-3 pr-4 font-medium text-text-primary">{r.eventTitle}</td>
+                <td className="py-3 pl-3 pr-4 font-medium text-text-primary">{r.eventTitle}</td>
                 <td className="py-3 pr-4 text-text-secondary">{r.theaterName}</td>
                 <td className="py-3 pr-4 text-text-secondary">{r.date} · {r.time}</td>
                 <td className="py-3 pr-4 text-text-secondary">{r.numberOfTickets}</td>
@@ -92,7 +92,7 @@ export default function AdminReservations() {
                     {r.status === 'confirmed' ? 'Potvrđena' : 'Otkazana'}
                   </span>
                 </td>
-                <td className="py-3 text-right">
+                <td className="py-3 pr-3 text-right">
                   {r.status === 'confirmed' ? (
                     <button onClick={() => handleCancel(r.id)} className="text-accent-red hover:underline">
                       Otkaži
