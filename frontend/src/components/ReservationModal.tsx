@@ -216,6 +216,11 @@ function ModalContent({
             × {event.pricePerTicket}€
           </span>
         </div>
+        {maxTickets < 10 && (
+          <p className="mt-2 text-xs text-accent-red">
+            Preostalo samo {event.availableSeats} {event.availableSeats === 1 ? 'mjesto' : 'mjesta'} — maks. {maxTickets} {maxTickets === 1 ? 'karta' : 'karata'}
+          </p>
+        )}
       </div>
 
       {/* Summary / Confirm */}
