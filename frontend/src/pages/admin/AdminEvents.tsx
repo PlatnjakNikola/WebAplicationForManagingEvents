@@ -59,8 +59,15 @@ export default function AdminEvents() {
     if (!form.theaterId) errs.theaterId = 'Kazalište je obavezno'
     if (!form.date) errs.date = 'Datum je obavezan'
     if (!form.time.trim()) errs.time = 'Vrijeme je obavezno'
+    const price = Number(form.pricePerTicket)
     if (!form.pricePerTicket.trim()) errs.pricePerTicket = 'Cijena je obavezna'
+    else if (price < 1) errs.pricePerTicket = 'Cijena mora biti najmanje 1 €'
+    else if (price > 9999) errs.pricePerTicket = 'Maksimalno 9999 €'
+
+    const seats = Number(form.totalSeats)
     if (!form.totalSeats.trim()) errs.totalSeats = 'Ukupno mjesta je obavezno'
+    else if (!Number.isInteger(seats) || seats < 1) errs.totalSeats = 'Mora biti najmanje 1 mjesto (cijeli broj)'
+    else if (seats > 99999) errs.totalSeats = 'Maksimalno 99999 mjesta'
     if (form.description.trim() && hasDoubleSpaces(form.description)) errs.description = 'Opis ne smije imati duple razmake'
     if (form.duration.trim() && hasDoubleSpaces(form.duration)) errs.duration = 'Trajanje ne smije imati duple razmake'
     return errs
@@ -186,8 +193,8 @@ export default function AdminEvents() {
             </div>
             <Input label="Datum *" type="date" value={form.date} onChange={(v) => updateField('date', v)} error={errors.date} />
             <Input label="Vrijeme *" type="time" value={form.time} onChange={(v) => updateField('time', v)} error={errors.time} />
-            <Input label="Cijena (€) *" type="number" value={form.pricePerTicket} onChange={(v) => updateField('pricePerTicket', v)} error={errors.pricePerTicket} />
-            <Input label="Ukupno mjesta *" type="number" value={form.totalSeats} onChange={(v) => updateField('totalSeats', v)} error={errors.totalSeats} />
+            <Input label="Cijena (€) *" type="number" value={form.pricePerTicket} onChange={(v) => updateField('pricePerTicket', v)} error={errors.pricePerTicket} min="1" max="9999" />
+            <Input label="Ukupno mjesta *" type="number" value={form.totalSeats} onChange={(v) => updateField('totalSeats', v)} error={errors.totalSeats} min="1" max="99999" />
             <Input label="Trajanje" value={form.duration} onChange={(v) => updateField('duration', v)} placeholder="npr. 2h 30min" error={errors.duration} />
             <Input label="Slika URL" value={form.imageUrl} onChange={(v) => updateField('imageUrl', v)} />
             <div className="sm:col-span-2">
@@ -265,16 +272,16 @@ export default function AdminEvents() {
   )
 }
 
-function Input({ label, value, onChange, type = 'text', placeholder, error }: {
-  label: string; value: string; onChange: (v: string) => void; type?: string; placeholder?: string; error?: string
+function Input({ label, value, onChange, type = 'text', placeholder, error, min, max }: {
+  label: string; value: string; onChange: (v: string) => void; type?: string; placeholder?: string; error?: string; min?: string; max?: string
 }) {
   return (
     <div>
       <label className="block text-sm font-medium text-text-secondary">{label}</label>
-      <input type={type} value={value} onChange={(e) => onChange(e.target.value)} placeholder={placeholder}
+      <input type={type} value={value} onChange={(e) => onChange(e.target.value)} placeholder={placeholder} min={min} max={max}
         className={`mt-1 w-full rounded-sm border bg-base-light px-3 py-2 text-sm text-text-primary outline-none focus:border-gold ${
-          error ? 'border-accent-red' : 'border-border'
-        }`} />
+          type === 'number' ? '[appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none' : ''
+        } ${error ? 'border-accent-red' : 'border-border'}`} />
       {error && <p className="mt-1 text-xs text-accent-red">{error}</p>}
     </div>
   )
