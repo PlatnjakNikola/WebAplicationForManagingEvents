@@ -212,7 +212,7 @@ export default function AdminEvents() {
             {editingId ? 'Uredi događaj' : 'Novi događaj'}
           </h2>
           <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <Input label="Naziv *" value={form.title} onChange={(v) => updateField('title', v)} error={errors.title} />
+            <Input label="Naziv *" value={form.title} onChange={(v) => updateField('title', v)} error={errors.title} maxLength={100} />
             <div>
               <label className="block text-sm font-medium text-text-secondary">Kazalište *</label>
               <select
@@ -276,14 +276,15 @@ export default function AdminEvents() {
             </div>
             <Input label="Cijena (€) *" type="number" value={form.pricePerTicket} onChange={(v) => updateField('pricePerTicket', v)} error={errors.pricePerTicket} min="1" max="9999" />
             <Input label="Ukupno mjesta *" type="number" value={form.totalSeats} onChange={(v) => updateField('totalSeats', v)} error={errors.totalSeats} min="1" max="99999" />
-            <Input label="Trajanje" value={form.duration} onChange={(v) => updateField('duration', v)} placeholder="npr. 2h 30min" error={errors.duration} />
-            <Input label="Slika URL" value={form.imageUrl} onChange={(v) => updateField('imageUrl', v)} />
+            <Input label="Trajanje" value={form.duration} onChange={(v) => updateField('duration', v)} placeholder="npr. 2h 30min" error={errors.duration} maxLength={20} />
+            <Input label="Slika URL" value={form.imageUrl} onChange={(v) => updateField('imageUrl', v)} maxLength={500} />
             <div className="sm:col-span-2">
               <label className="block text-sm font-medium text-text-secondary">Opis</label>
               <textarea
                 value={form.description}
                 onChange={(e) => updateField('description', e.target.value)}
                 rows={3}
+                maxLength={500}
                 className={`mt-1 w-full resize-none rounded-sm border bg-base-light px-3 py-2 text-sm text-text-primary outline-none focus:border-gold ${
                   errors.description ? 'border-accent-red' : 'border-border'
                 }`}
@@ -353,13 +354,13 @@ export default function AdminEvents() {
   )
 }
 
-function Input({ label, value, onChange, type = 'text', placeholder, error, min, max }: {
-  label: string; value: string; onChange: (v: string) => void; type?: string; placeholder?: string; error?: string; min?: string; max?: string
+function Input({ label, value, onChange, type = 'text', placeholder, error, min, max, maxLength }: {
+  label: string; value: string; onChange: (v: string) => void; type?: string; placeholder?: string; error?: string; min?: string; max?: string; maxLength?: number
 }) {
   return (
     <div>
       <label className="block text-sm font-medium text-text-secondary">{label}</label>
-      <input type={type} value={value} onChange={(e) => onChange(e.target.value)} placeholder={placeholder} min={min} max={max}
+      <input type={type} value={value} onChange={(e) => onChange(e.target.value)} placeholder={placeholder} min={min} max={max} maxLength={maxLength}
         className={`mt-1 w-full rounded-sm border bg-base-light px-3 py-2 text-sm text-text-primary outline-none focus:border-gold ${
           type === 'number' ? '[appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none' : ''
         } ${error ? 'border-accent-red' : 'border-border'}`} />
