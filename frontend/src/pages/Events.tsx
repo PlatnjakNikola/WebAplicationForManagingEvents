@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from 'react'
+import { useState, useMemo, useEffect, useCallback } from 'react'
 import EventCard from '../components/EventCard'
 import EventDetailModal from '../components/EventDetailModal'
 import ReservationModal from '../components/ReservationModal'
@@ -10,6 +10,7 @@ const ITEMS_PER_PAGE = 6
 
 export default function Events() {
   const [loading, setLoading] = useState(true)
+  const [events, setEvents] = useState<Event[]>(mockEvents)
 
   useEffect(() => {
     const t = setTimeout(() => setLoading(false), 350)
@@ -26,7 +27,7 @@ export default function Events() {
   const [visibleCount, setVisibleCount] = useState(ITEMS_PER_PAGE)
 
   const filteredEvents = useMemo(() => {
-    return mockEvents.filter((event) => {
+    return events.filter((event) => {
       const matchesSearch =
         !search ||
         event.title.toLowerCase().includes(search.toLowerCase()) ||
@@ -38,7 +39,7 @@ export default function Events() {
 
       return matchesSearch && matchesDate && matchesTheater
     })
-  }, [search, dateFilter, theaterFilter])
+  }, [events, search, dateFilter, theaterFilter])
 
   const visibleEvents = filteredEvents.slice(0, visibleCount)
   const hasMore = visibleCount < filteredEvents.length
@@ -57,6 +58,14 @@ export default function Events() {
   const handleReserve = (event: Event) => {
     setReserveEvent(event)
   }
+
+  const handleReservationConfirm = useCallback((eventId: string, ticketCount: number) => {
+    setEvents((prev) =>
+      prev.map((e) =>
+        e.id === eventId ? { ...e, availableSeats: Math.max(0, e.availableSeats - ticketCount) } : e
+      )
+    )
+  }, [])
 
   return (
     <div className="mx-auto max-w-7xl px-5 py-8 md:px-8">
@@ -282,7 +291,7 @@ export default function Events() {
       <EventDetailModal event={detailEvent} onClose={() => setDetailEvent(null)} onReserve={(e) => { setDetailEvent(null); handleReserve(e) }} />
 
       {/* Reservation modal */}
-      <ReservationModal event={reserveEvent} onClose={() => setReserveEvent(null)} />
+      <ReservationModal event={reserveEvent} onClose={() => setReserveEvent(null)} onConfirm={handleReservationConfirm} />
     </div>
   )
 }

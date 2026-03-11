@@ -5,9 +5,10 @@ import toast from 'react-hot-toast'
 interface ReservationModalProps {
   event: Event | null
   onClose: () => void
+  onConfirm?: (eventId: string, ticketCount: number) => void
 }
 
-export default function ReservationModal({ event, onClose }: ReservationModalProps) {
+export default function ReservationModal({ event, onClose, onConfirm }: ReservationModalProps) {
   const [tickets, setTickets] = useState(1)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [showConfirm, setShowConfirm] = useState(false)
@@ -59,6 +60,7 @@ export default function ReservationModal({ event, onClose }: ReservationModalPro
     // Simulate API call
     await new Promise((r) => setTimeout(r, 1000))
     setIsSubmitting(false)
+    onConfirm?.(event.id, tickets)
     onClose()
     toast.success(`Rezervirano ${tickets} ${tickets === 1 ? 'karta' : 'karata'} za "${event.title}"`)
   }
