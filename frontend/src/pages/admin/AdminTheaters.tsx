@@ -78,17 +78,17 @@ export default function AdminTheaters() {
         <table className="w-full text-left text-sm">
           <thead>
             <tr className="border-b border-border text-xs font-medium uppercase text-text-muted">
-              <th className="py-3 pr-4">Naziv</th><th className="py-3 pr-4">Adresa</th><th className="py-3 pr-4">Kapacitet</th><th className="py-3 pr-4">Kontakt</th><th className="py-3 text-right">Akcije</th>
+              <th className="py-3 pl-3 pr-4">Naziv</th><th className="py-3 pr-4">Adresa</th><th className="py-3 pr-4">Kapacitet</th><th className="py-3 pr-4">Kontakt</th><th className="py-3 pr-3 text-right">Akcije</th>
             </tr>
           </thead>
           <tbody>
             {theaters.map((t) => (
               <tr key={t.id} className="border-b border-border/50 transition-colors hover:bg-surface">
-                <td className="py-3 pr-4 font-medium text-text-primary">{t.name}</td>
+                <td className="py-3 pl-3 pr-4 font-medium text-text-primary">{t.name}</td>
                 <td className="py-3 pr-4 text-text-secondary">{t.address}</td>
                 <td className="py-3 pr-4 text-text-secondary">{t.capacity}</td>
                 <td className="py-3 pr-4 text-text-secondary">{t.contact}</td>
-                <td className="py-3 text-right">
+                <td className="py-3 pr-3 text-right">
                   <button onClick={() => openEdit(t)} className="mr-3 text-accent-blue hover:underline">Uredi</button>
                   <button onClick={() => handleDelete(t.id)} className="text-accent-red hover:underline">Obriši</button>
                 </td>
