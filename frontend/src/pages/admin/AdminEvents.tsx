@@ -3,12 +3,16 @@ import { mockEvents, mockTheaters } from '../../lib/mockData'
 import toast from 'react-hot-toast'
 import type { Event } from '../../types'
 
+const HOURS = Array.from({ length: 24 }, (_, i) => String(i).padStart(2, '0'))
+const MINUTES = ['00', '15', '30', '45']
+
 const emptyForm = {
   title: '',
   description: '',
   theaterId: '',
   date: '',
-  time: '',
+  timeHour: '',
+  timeMinute: '',
   pricePerTicket: '',
   totalSeats: '',
   duration: '',
@@ -52,7 +56,8 @@ export default function AdminEvents() {
       description: event.description,
       theaterId: event.theaterId,
       date: event.date,
-      time: event.time,
+      timeHour: (event.time || '').split(':')[0] || '',
+      timeMinute: (event.time || '').split(':')[1] || '',
       pricePerTicket: String(event.pricePerTicket),
       totalSeats: String(event.totalSeats),
       duration: event.duration,
@@ -70,7 +75,7 @@ export default function AdminEvents() {
     if (!form.theaterId) errs.theaterId = 'Kazalište je obavezno'
     if (!form.date) errs.date = 'Datum je obavezan'
     else if (form.date < today) errs.date = 'Datum ne smije biti u prošlosti'
-    if (!form.time.trim()) errs.time = 'Vrijeme je obavezno'
+    if (!form.timeHour || !form.timeMinute) errs.timeHour = 'Vrijeme je obavezno'
     const price = Number(form.pricePerTicket)
     if (!form.pricePerTicket.trim()) errs.pricePerTicket = 'Cijena je obavezna'
     else if (price < 1) errs.pricePerTicket = 'Cijena mora biti najmanje 1 €'
@@ -111,7 +116,7 @@ export default function AdminEvents() {
                 theaterId: form.theaterId,
                 theaterName: theater?.name || '',
                 date: form.date,
-                time: form.time.trim(),
+                time: `${form.timeHour}:${form.timeMinute}`,
                 pricePerTicket: Number(form.pricePerTicket),
                 totalSeats,
                 duration,
@@ -237,7 +242,38 @@ export default function AdminEvents() {
               />
               {errors.date && <p className="mt-1 text-xs text-accent-red">{errors.date}</p>}
             </div>
-            <Input label="Vrijeme *" type="time" value={form.time} onChange={(v) => updateField('time', v)} error={errors.time} />
+            <div>
+              <label className="block text-sm font-medium text-text-secondary">Vrijeme *</label>
+              <div className={`mt-1 flex items-center rounded-sm border bg-base-light ${
+                errors.timeHour ? 'border-accent-red' : 'border-border'
+              }`}>
+                <svg className="ml-3 h-4 w-4 shrink-0 text-text-muted" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+                </svg>
+                <select
+                  value={form.timeHour}
+                  onChange={(e) => updateField('timeHour', e.target.value)}
+                  className="w-full bg-transparent px-2 py-2 text-sm text-text-primary outline-none"
+                >
+                  <option value="">Sat</option>
+                  {HOURS.map((h) => (
+                    <option key={h} value={h}>{h}</option>
+                  ))}
+                </select>
+                <span className="text-sm font-medium text-text-muted">:</span>
+                <select
+                  value={form.timeMinute}
+                  onChange={(e) => updateField('timeMinute', e.target.value)}
+                  className="w-full bg-transparent px-2 py-2 text-sm text-text-primary outline-none"
+                >
+                  <option value="">Min</option>
+                  {MINUTES.map((m) => (
+                    <option key={m} value={m}>{m}</option>
+                  ))}
+                </select>
+              </div>
+              {errors.timeHour && <p className="mt-1 text-xs text-accent-red">{errors.timeHour}</p>}
+            </div>
             <Input label="Cijena (€) *" type="number" value={form.pricePerTicket} onChange={(v) => updateField('pricePerTicket', v)} error={errors.pricePerTicket} min="1" max="9999" />
             <Input label="Ukupno mjesta *" type="number" value={form.totalSeats} onChange={(v) => updateField('totalSeats', v)} error={errors.totalSeats} min="1" max="99999" />
             <Input label="Trajanje" value={form.duration} onChange={(v) => updateField('duration', v)} placeholder="npr. 2h 30min" error={errors.duration} />
