@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, Navigate, useNavigate } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod/v4'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -16,7 +16,14 @@ type LoginForm = z.infer<typeof loginSchema>
 export default function Login() {
   const navigate = useNavigate()
   const login = useAuthStore((s) => s.login)
+  const { isAuthenticated, user } = useAuthStore()
   const [isLoading, setIsLoading] = useState(false)
+  const [showPassword, setShowPassword] = useState(false)
+
+  // Bug 6: Redirect if already logged in
+  if (isAuthenticated) {
+    return <Navigate to={user?.role === 'admin' ? '/admin/events' : '/events'} replace />
+  }
 
   const {
     register,
