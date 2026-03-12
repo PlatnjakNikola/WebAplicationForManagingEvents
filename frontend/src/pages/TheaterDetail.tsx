@@ -33,11 +33,9 @@ export default function TheaterDetail() {
     <div className="mx-auto max-w-7xl px-5 py-8 md:px-8">
       {/* Breadcrumb */}
       <div className="mb-6 flex items-center gap-2 text-sm text-text-muted">
-        <Link to="/theaters" className="transition-colors hover:text-gold">
-          Kazališta
+        <Link to="/theaters" className="transition-colors hover:text-gold border-b border-transparent hover:border-gold">
+          ← Nazad
         </Link>
-        <span>/</span>
-        <span className="text-text-secondary">{theater.name}</span>
       </div>
 
       <div className="flex flex-col gap-8 lg:flex-row">
