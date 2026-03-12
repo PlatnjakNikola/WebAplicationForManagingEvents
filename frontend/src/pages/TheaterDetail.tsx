@@ -76,6 +76,7 @@ export default function TheaterDetail() {
               }
               label="Kontakt"
               value={theater.contact}
+              href={`tel:${theater.contact.replace(/\s+/g, '')}`}
             />
             <InfoItem
               icon={
@@ -166,10 +167,12 @@ function InfoItem({
   icon,
   label,
   value,
+  href,
 }: {
   icon: React.ReactNode
   label: string
   value: string
+  href?: string
 }) {
   return (
     <div className="flex items-start gap-3 rounded-sm border border-border bg-surface p-4">
@@ -184,7 +187,13 @@ function InfoItem({
       </svg>
       <div>
         <p className="text-xs font-medium text-text-muted">{label}</p>
-        <p className="mt-0.5 text-sm text-text-secondary">{value}</p>
+        {href ? (
+          <a href={href} className="mt-0.5 block text-sm text-gold hover:text-gold-light transition-colors">
+            {value}
+          </a>
+        ) : (
+          <p className="mt-0.5 text-sm text-text-secondary">{value}</p>
+        )}
       </div>
     </div>
   )
