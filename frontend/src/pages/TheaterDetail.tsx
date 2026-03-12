@@ -122,6 +122,7 @@ export default function TheaterDetail() {
                     key={event.id}
                     event={event}
                     onReserve={setReserveEvent}
+                    onDetail={() => {}}
                   />
                 ))}
               </div>
