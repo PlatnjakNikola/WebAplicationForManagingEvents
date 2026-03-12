@@ -76,6 +76,7 @@ export default function Reviews() {
       id: String(Date.now()),
       userId: user?.id || '1',
       userName: user ? `${user.firstName} ${user.lastName}` : 'Korisnik',
+      userEmail: user?.email || '',
       eventId: formEventId,
       eventTitle: event.title,
       theaterName: event.theaterName,
