@@ -10,6 +10,7 @@ import { errorMiddleware } from "./middleware/error.middleware";
 import authRoutes from "./routes/auth.routes";
 import theaterRoutes from "./routes/theater.routes";
 import eventRoutes from "./routes/event.routes";
+import reservationRoutes from "./routes/reservation.routes";
 
 const app = express();
 
@@ -30,6 +31,7 @@ app.get("/api/health", (_req, res) => {
 app.use("/api/auth", authRoutes);
 app.use("/api/theaters", theaterRoutes);
 app.use("/api/events", eventRoutes);
+app.use("/api/reservations", reservationRoutes);
 
 // Global error handler (MUST be last)
 app.use(errorMiddleware);
