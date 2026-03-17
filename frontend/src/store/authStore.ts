@@ -1,25 +1,6 @@
 import { create } from 'zustand'
 import type { User } from '../types'
-
-// Mock users for development (mutable array so register() can add new users)
-const MOCK_USERS: { id: string; email: string; password: string; firstName: string; lastName: string; role: 'user' | 'admin' }[] = [
-  {
-    id: '1',
-    email: 'user@theatrum.hr',
-    password: 'User1234',
-    firstName: 'Marko',
-    lastName: 'Horvat',
-    role: 'user' as const,
-  },
-  {
-    id: '2',
-    email: 'admin@theatrum.hr',
-    password: 'Admin1234',
-    firstName: 'Ana',
-    lastName: 'Kovačević',
-    role: 'admin' as const,
-  },
-]
+import api from '../lib/axios'
 
 interface AuthState {
   user: User | null
@@ -56,44 +37,29 @@ export const useAuthStore = create<AuthState>((set) => ({
   },
 
   login: async (email, password) => {
-    await new Promise((r) => setTimeout(r, 800))
+    try {
+      const { data } = await api.post('/auth/login', { email, password })
+      const { token, user } = data as { token: string; user: User }
 
-    const found = MOCK_USERS.find(
-      (u) => u.email === email && u.password === password
-    )
+      localStorage.setItem('token', token)
+      localStorage.setItem('user', JSON.stringify(user))
+      set({ user, token, isAuthenticated: true })
 
-    if (!found) {
-      return { success: false, error: 'Pogrešan email ili lozinka' }
+      return { success: true }
+    } catch (err: any) {
+      const message = err.response?.data?.error?.message || 'Pogrešan email ili lozinka'
+      return { success: false, error: message }
     }
-
-    const { password: _, ...user } = found
-    const token = `mock-jwt-${user.id}-${Date.now()}`
-
-    localStorage.setItem('token', token)
-    localStorage.setItem('user', JSON.stringify(user))
-    set({ user, token, isAuthenticated: true })
-
-    return { success: true }
   },
 
   register: async (data) => {
-    await new Promise((r) => setTimeout(r, 800))
-
-    const exists = MOCK_USERS.find((u) => u.email === data.email)
-    if (exists) {
-      return { success: false, error: 'Korisnik s tim emailom već postoji' }
+    try {
+      await api.post('/auth/register', data)
+      return { success: true }
+    } catch (err: any) {
+      const message = err.response?.data?.error?.message || 'Registracija nije uspjela'
+      return { success: false, error: message }
     }
-
-    MOCK_USERS.push({
-      id: String(MOCK_USERS.length + 1),
-      email: data.email,
-      password: data.password,
-      firstName: data.firstName,
-      lastName: data.lastName,
-      role: 'user',
-    })
-
-    return { success: true }
   },
 
   logout: () => {
