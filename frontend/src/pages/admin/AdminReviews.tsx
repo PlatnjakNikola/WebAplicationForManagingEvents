@@ -1,5 +1,6 @@
-import { useMemo, useState } from 'react'
-import { mockReviews } from '../../lib/mockData'
+import { useEffect, useMemo, useState } from 'react'
+import api from '../../lib/axios'
+import type { Review } from '../../types'
 
 function Stars({ rating }: { rating: number }) {
   return (
@@ -19,17 +20,30 @@ function Stars({ rating }: { rating: number }) {
 }
 
 export default function AdminReviews() {
+  const [allReviews, setAllReviews] = useState<Review[]>([])
   const [expandedId, setExpandedId] = useState<string | null>(null)
   const [filterEvent, setFilterEvent] = useState('')
   const [sortBy, setSortBy] = useState<'date-desc' | 'date-asc' | 'rating-desc' | 'rating-asc'>('date-desc')
 
-  const eventOptions = useMemo(() => {
-    const titles = [...new Set(mockReviews.map((r) => r.eventTitle))]
-    return titles.sort((a, b) => a.localeCompare(b, 'hr'))
+  useEffect(() => {
+    async function fetchReviews() {
+      try {
+        const { data } = await api.get('/reviews/admin')
+        setAllReviews(data)
+      } catch {
+        // handled by axios interceptor
+      }
+    }
+    fetchReviews()
   }, [])
 
+  const eventOptions = useMemo(() => {
+    const titles = [...new Set(allReviews.map((r) => r.eventTitle))]
+    return titles.sort((a, b) => a.localeCompare(b, 'hr'))
+  }, [allReviews])
+
   const reviews = useMemo(() => {
-    let filtered = [...mockReviews]
+    let filtered = [...allReviews]
     if (filterEvent) filtered = filtered.filter((r) => r.eventTitle === filterEvent)
     return filtered.sort((a, b) => {
       switch (sortBy) {
@@ -39,7 +53,7 @@ export default function AdminReviews() {
         case 'rating-asc': return a.rating - b.rating
       }
     })
-  }, [filterEvent, sortBy])
+  }, [allReviews, filterEvent, sortBy])
 
   function toggleExpand(id: string) {
     setExpandedId((prev) => (prev === id ? null : id))

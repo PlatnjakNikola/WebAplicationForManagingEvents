@@ -1,13 +1,25 @@
-import { useState } from 'react'
-import { mockReservations } from '../../lib/mockData'
+import { useState, useEffect } from 'react'
 import toast from 'react-hot-toast'
+import api from '../../lib/axios'
 import type { Reservation } from '../../types'
 
 type FilterStatus = 'all' | 'confirmed' | 'cancelled'
 
 export default function AdminReservations() {
-  const [reservations, setReservations] = useState<Reservation[]>(mockReservations)
+  const [reservations, setReservations] = useState<Reservation[]>([])
   const [filter, setFilter] = useState<FilterStatus>('all')
+
+  useEffect(() => {
+    async function fetchReservations() {
+      try {
+        const { data } = await api.get('/reservations/admin')
+        setReservations(data)
+      } catch {
+        // handled by axios interceptor
+      }
+    }
+    fetchReservations()
+  }, [])
 
   const filtered = reservations
     .filter((r) => filter === 'all' || r.status === filter)
@@ -19,12 +31,17 @@ export default function AdminReservations() {
     cancelled: reservations.filter((r) => r.status === 'cancelled').length,
   }
 
-  function handleCancel(id: string) {
+  async function handleCancel(id: string) {
     if (!window.confirm('Otkazati ovu rezervaciju?')) return
-    setReservations((prev) =>
-      prev.map((r) => (r.id === id ? { ...r, status: 'cancelled' as const } : r))
-    )
-    toast.success('Rezervacija je otkazana.')
+    try {
+      await api.patch(`/reservations/admin/${id}/cancel`)
+      setReservations((prev) =>
+        prev.map((r) => (r.id === id ? { ...r, status: 'cancelled' as const } : r))
+      )
+      toast.success('Rezervacija je otkazana.')
+    } catch {
+      toast.error('Greška pri otkazivanju rezervacije.')
+    }
   }
 
   const filters: { key: FilterStatus; label: string }[] = [

@@ -1,6 +1,6 @@
-import { useState } from 'react'
-import { mockTheaters } from '../../lib/mockData'
+import { useState, useEffect } from 'react'
 import toast from 'react-hot-toast'
+import api from '../../lib/axios'
 import type { Theater } from '../../types'
 
 const emptyForm = {
@@ -19,12 +19,24 @@ function hasDoubleSpaces(value: string): boolean {
 }
 
 export default function AdminTheaters() {
-  const [theaters, setTheaters] = useState<Theater[]>(mockTheaters)
+  const [theaters, setTheaters] = useState<Theater[]>([])
   const [showForm, setShowForm] = useState(false)
   const [editingId, setEditingId] = useState<string | null>(null)
   const [form, setForm] = useState(emptyForm)
   const [errors, setErrors] = useState<FormErrors>({})
   const [selected, setSelected] = useState<Set<string>>(new Set())
+
+  useEffect(() => {
+    async function fetchTheaters() {
+      try {
+        const { data } = await api.get('/theaters')
+        setTheaters(data)
+      } catch {
+        // handled by axios interceptor
+      }
+    }
+    fetchTheaters()
+  }, [])
 
   const allSelected = theaters.length > 0 && selected.size === theaters.length
 
@@ -42,12 +54,17 @@ export default function AdminTheaters() {
     else setSelected(new Set(theaters.map((t) => t.id)))
   }
 
-  function handleBulkDelete() {
+  async function handleBulkDelete() {
     if (selected.size === 0) return
     if (!window.confirm(`Obrisati ${selected.size} odabranih kazališta?`)) return
-    setTheaters((prev) => prev.filter((t) => !selected.has(t.id)))
-    toast.success(`Obrisano ${selected.size} kazališta.`)
-    setSelected(new Set())
+    try {
+      await Promise.all([...selected].map((id) => api.delete(`/theaters/${id}`)))
+      setTheaters((prev) => prev.filter((t) => !selected.has(t.id)))
+      toast.success(`Obrisano ${selected.size} kazališta.`)
+      setSelected(new Set())
+    } catch {
+      toast.error('Greška pri brisanju kazališta.')
+    }
   }
 
   function openAdd() {
@@ -114,7 +131,7 @@ export default function AdminTheaters() {
     }
   }
 
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     const errs = validate()
     setErrors(errs)
@@ -123,41 +140,46 @@ export default function AdminTheaters() {
       return
     }
 
-    const name = form.name.trim()
-    const address = form.address.trim()
-    const description = form.description.trim()
-    const contact = form.contact.trim()
-    const workingHours = form.workingHours.trim()
-    const capacity = Number(form.capacity)
-
-    if (editingId) {
-      setTheaters((prev) =>
-        prev.map((t) =>
-          t.id === editingId
-            ? { ...t, name, address, description, capacity, contact, workingHours }
-            : t
-        )
-      )
-      toast.success('Kazalište je ažurirano.')
-    } else {
-      setTheaters((prev) => [
-        { id: String(Date.now()), name, address, description, capacity, contact, workingHours, latitude: 0, longitude: 0 },
-        ...prev,
-      ])
-      toast.success('Kazalište je dodano.')
+    const payload = {
+      name: form.name.trim(),
+      address: form.address.trim(),
+      description: form.description.trim(),
+      capacity: Number(form.capacity),
+      contact: form.contact.trim(),
+      workingHours: form.workingHours.trim(),
     }
 
-    setShowForm(false)
-    setEditingId(null)
-    setForm(emptyForm)
-    setErrors({})
+    try {
+      if (editingId) {
+        const { data } = await api.put(`/theaters/${editingId}`, payload)
+        setTheaters((prev) => prev.map((t) => (t.id === editingId ? data : t)))
+        toast.success('Kazalište je ažurirano.')
+      } else {
+        const { data } = await api.post('/theaters', payload)
+        setTheaters((prev) => [data, ...prev])
+        toast.success('Kazalište je dodano.')
+      }
+      setShowForm(false)
+      setEditingId(null)
+      setForm(emptyForm)
+      setErrors({})
+    } catch (err: unknown) {
+      const message = (err as { response?: { data?: { error?: { message?: string } } } }).response?.data?.error?.message || 'Greška pri spremanju kazališta.'
+      toast.error(message)
+    }
   }
 
-  function handleDelete(id: string) {
+  async function handleDelete(id: string) {
     if (!window.confirm('Obrisati ovo kazalište?')) return
-    setTheaters((prev) => prev.filter((t) => t.id !== id))
-    setSelected((prev) => { const next = new Set(prev); next.delete(id); return next })
-    toast.success('Kazalište je obrisano.')
+    try {
+      await api.delete(`/theaters/${id}`)
+      setTheaters((prev) => prev.filter((t) => t.id !== id))
+      setSelected((prev) => { const next = new Set(prev); next.delete(id); return next })
+      toast.success('Kazalište je obrisano.')
+    } catch (err: unknown) {
+      const message = (err as { response?: { data?: { error?: { message?: string } } } }).response?.data?.error?.message || 'Greška pri brisanju kazališta.'
+      toast.error(message)
+    }
   }
 
   return (

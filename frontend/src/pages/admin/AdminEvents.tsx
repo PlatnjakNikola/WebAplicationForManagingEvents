@@ -1,7 +1,7 @@
-import { useState } from 'react'
-import { mockEvents, mockTheaters } from '../../lib/mockData'
+import { useState, useEffect } from 'react'
 import toast from 'react-hot-toast'
-import type { Event } from '../../types'
+import api from '../../lib/axios'
+import type { Event, Theater } from '../../types'
 
 
 const emptyForm = {
@@ -37,27 +37,36 @@ function parseDurationToMinutes(dur: string): string {
   return total > 0 ? String(total) : dur
 }
 
-function formatDuration(minutes: number): string {
-  const h = Math.floor(minutes / 60)
-  const m = minutes % 60
-  if (h > 0 && m > 0) return `${h}h ${m}min`
-  if (h > 0) return `${h}h`
-  return `${m}min`
-}
-
 function todayStr(): string {
   const d = new Date()
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
 }
 
 export default function AdminEvents() {
-  const [events, setEvents] = useState<Event[]>(mockEvents)
+  const [events, setEvents] = useState<Event[]>([])
+  const [theaters, setTheaters] = useState<Theater[]>([])
   const [showForm, setShowForm] = useState(false)
   const [editingId, setEditingId] = useState<string | null>(null)
   const [form, setForm] = useState(emptyForm)
   const [errors, setErrors] = useState<FormErrors>({})
   const [selected, setSelected] = useState<Set<string>>(new Set())
   const today = todayStr()
+
+  useEffect(() => {
+    async function fetchData() {
+      try {
+        const [eventsRes, theatersRes] = await Promise.all([
+          api.get('/events?limit=50'),
+          api.get('/theaters'),
+        ])
+        setEvents(eventsRes.data.data)
+        setTheaters(theatersRes.data)
+      } catch {
+        // handled by axios interceptor
+      }
+    }
+    fetchData()
+  }, [])
 
   const allSelected = events.length > 0 && selected.size === events.length
 
@@ -75,12 +84,17 @@ export default function AdminEvents() {
     else setSelected(new Set(events.map((e) => e.id)))
   }
 
-  function handleBulkDelete() {
+  async function handleBulkDelete() {
     if (selected.size === 0) return
     if (!window.confirm(`Obrisati ${selected.size} odabranih događaja?`)) return
-    setEvents((prev) => prev.filter((ev) => !selected.has(ev.id)))
-    toast.success(`Obrisano ${selected.size} događaja.`)
-    setSelected(new Set())
+    try {
+      await Promise.all([...selected].map((id) => api.delete(`/events/${id}`)))
+      setEvents((prev) => prev.filter((ev) => !selected.has(ev.id)))
+      toast.success(`Obrisano ${selected.size} događaja.`)
+      setSelected(new Set())
+    } catch {
+      toast.error('Greška pri brisanju događaja.')
+    }
   }
 
   function openAdd() {
@@ -136,7 +150,7 @@ export default function AdminEvents() {
     return errs
   }
 
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     const errs = validate()
     setErrors(errs)
@@ -145,63 +159,49 @@ export default function AdminEvents() {
       return
     }
 
-    const theater = mockTheaters.find((t) => t.id === form.theaterId)
-    const totalSeats = Number(form.totalSeats)
-    const title = form.title.trim()
-    const description = form.description.trim()
-    const duration = formatDuration(Number(form.duration))
-
-    if (editingId) {
-      setEvents((prev) =>
-        prev.map((ev) =>
-          ev.id === editingId
-            ? {
-                ...ev,
-                title,
-                description,
-                theaterId: form.theaterId,
-                theaterName: theater?.name || '',
-                date: form.date,
-                time: `${form.timeHour}:${form.timeMinute}`,
-                pricePerTicket: Number(form.pricePerTicket),
-                totalSeats,
-                duration,
-                imageUrl: form.imageUrl.trim(),
-              }
-            : ev
-        )
-      )
-      toast.success('Događaj je ažuriran.')
-    } else {
-      const newEvent: Event = {
-        id: String(Date.now()),
-        title,
-        description,
-        theaterId: form.theaterId,
-        theaterName: theater?.name || '',
-        date: form.date,
-        time: `${form.timeHour}:${form.timeMinute}`,
-        pricePerTicket: Number(form.pricePerTicket),
-        totalSeats,
-        availableSeats: totalSeats,
-        imageUrl: form.imageUrl.trim() || 'https://images.unsplash.com/photo-1507676184212-d03ab07a01bf?w=600&h=400&fit=crop',
-        duration,
-      }
-      setEvents((prev) => [newEvent, ...prev])
-      toast.success('Događaj je dodan.')
+    const payload = {
+      title: form.title.trim(),
+      description: form.description.trim() || undefined,
+      theaterId: Number(form.theaterId),
+      date: form.date,
+      time: `${form.timeHour.padStart(2, '0')}:${form.timeMinute.padStart(2, '0')}`,
+      pricePerTicket: Number(form.pricePerTicket),
+      totalSeats: Number(form.totalSeats),
+      duration: Number(form.duration),
+      imageUrl: form.imageUrl.trim() || undefined,
     }
 
-    setShowForm(false)
-    setEditingId(null)
-    setForm(emptyForm)
-    setErrors({})
+    try {
+      if (editingId) {
+        const { data } = await api.put(`/events/${editingId}`, payload)
+        setEvents((prev) => prev.map((ev) => (ev.id === editingId ? data : ev)))
+        toast.success('Događaj je ažuriran.')
+      } else {
+        const { data } = await api.post('/events', payload)
+        setEvents((prev) => [data, ...prev])
+        toast.success('Događaj je dodan.')
+      }
+      setShowForm(false)
+      setEditingId(null)
+      setForm(emptyForm)
+      setErrors({})
+    } catch (err: unknown) {
+      const message = (err as { response?: { data?: { error?: { message?: string } } } }).response?.data?.error?.message || 'Greška pri spremanju događaja.'
+      toast.error(message)
+    }
   }
 
-  function handleDelete(id: string) {
+  async function handleDelete(id: string) {
     if (!window.confirm('Obrisati ovaj događaj?')) return
-    setEvents((prev) => prev.filter((ev) => ev.id !== id))
-    setSelected((prev) => { const next = new Set(prev); next.delete(id); return next })
-    toast.success('Događaj je obrisan.')
+    try {
+      await api.delete(`/events/${id}`)
+      setEvents((prev) => prev.filter((ev) => ev.id !== id))
+      setSelected((prev) => { const next = new Set(prev); next.delete(id); return next })
+      toast.success('Događaj je obrisan.')
+    } catch (err: unknown) {
+      const message = (err as { response?: { data?: { error?: { message?: string } } } }).response?.data?.error?.message || 'Greška pri brisanju događaja.'
+      toast.error(message)
+    }
   }
 
   function validateField(field: string, value: string): string | undefined {
@@ -282,7 +282,7 @@ export default function AdminEvents() {
                   }`}
                 >
                   <option value="">Odaberite...</option>
-                  {mockTheaters.map((t) => (
+                  {theaters.map((t) => (
                     <option key={t.id} value={t.id}>{t.name}</option>
                   ))}
                 </select>
