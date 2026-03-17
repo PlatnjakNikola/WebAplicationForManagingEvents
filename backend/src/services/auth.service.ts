@@ -75,17 +75,28 @@ export async function login(input: LoginInput): Promise<LoginResponse> {
   return { token, refreshToken, user: toUserResponse(user) };
 }
 
-export async function refresh(refreshToken: string): Promise<{ token: string; refreshToken: string }> {
+export async function refresh(
+  refreshToken: string
+): Promise<{ token: string; refreshToken: string }> {
   try {
-    const payload = jwt.verify(refreshToken, env.JWT_SECRET) as { sub: number; type?: string };
-    if (payload.type !== "refresh") {
+    const decoded = jwt.verify(refreshToken, env.JWT_SECRET);
+
+    if (typeof decoded === "string" || !decoded.sub) {
+      throw new AppError(401, "UNAUTHORIZED", "Invalid refresh token");
+    }
+
+    const userId = Number(decoded.sub);
+    const tokenType = (decoded as any).type;
+
+    if (tokenType !== "refresh") {
       throw new AppError(401, "UNAUTHORIZED", "Invalid refresh token");
     }
 
     const user = await prisma.user.findUnique({
-      where: { id: payload.sub },
+      where: { id: userId },
       select: { id: true, role: true },
     });
+
     if (!user) {
       throw new AppError(401, "UNAUTHORIZED", "User not found");
     }
