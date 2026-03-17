@@ -1,6 +1,7 @@
 import { prisma } from "../config/prisma";
 import { AppError } from "../utils/AppError";
 import { toTheaterResponse } from "../mappers/theater.mapper";
+import { toEventResponse } from "../mappers/event.mapper";
 
 export async function getAll() {
   const theaters = await prisma.theater.findMany({
@@ -16,7 +17,23 @@ export async function getById(id: number) {
   if (!theater) {
     throw new AppError(404, "NOT_FOUND", "Theater not found");
   }
-  return toTheaterResponse(theater);
+
+  const events = await prisma.event.findMany({
+    where: {
+      hall: { theaterId: id },
+      dateTime: { gt: new Date() },
+    },
+    orderBy: { dateTime: "asc" },
+    include: {
+      hall: { include: { theater: { select: { id: true, name: true } } } },
+      reservations: { select: { status: true, numberOfTickets: true } },
+    },
+  });
+
+  return {
+    ...toTheaterResponse(theater),
+    events: events.map(toEventResponse),
+  };
 }
 
 export async function create(data: {
