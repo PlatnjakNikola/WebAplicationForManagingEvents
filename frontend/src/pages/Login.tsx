@@ -193,15 +193,6 @@ export default function Login() {
               Registrirajte se
             </Link>
           </p>
-
-          {/* Dev credentials hint */}
-          <div className="mt-8 rounded-sm border border-border bg-surface/50 p-4">
-            <p className="text-xs font-medium text-text-muted mb-2">Test pristupni podaci:</p>
-            <div className="space-y-1 text-xs text-text-muted">
-              <p><span className="text-text-secondary">Korisnik:</span> user@theatrum.hr / User1234</p>
-              <p><span className="text-text-secondary">Admin:</span> admin@theatrum.hr / Admin1234</p>
-            </div>
-          </div>
         </div>
       </div>
     </div>
