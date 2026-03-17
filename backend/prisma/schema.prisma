@@ -1,0 +1,92 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlserver"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           Int           @id @default(autoincrement()) @map("Id")
+  email        String        @unique @map("Email")
+  password     String        @map("Lozinka")
+  firstName    String        @map("Ime")
+  lastName     String        @map("Prezime")
+  role         String        @default("user") @map("Uloga")
+  createdAt    DateTime      @default(now()) @map("KreiranoU")
+  reservations Reservation[]
+  reviews      Review[]
+
+  @@map("Korisnik")
+}
+
+model Theater {
+  id           Int      @id @default(autoincrement()) @map("Id")
+  name         String   @map("Naziv")
+  address      String   @map("Adresa")
+  description  String   @map("Opis")
+  capacity     Int      @map("Kapacitet")
+  contact      String   @map("Kontakt")
+  workingHours String   @map("RadnoVrijeme")
+  latitude     Float    @default(0) @map("Lat")
+  longitude    Float    @default(0) @map("Lng")
+  halls        Hall[]
+
+  @@map("Kazaliste")
+}
+
+model Hall {
+  id        Int     @id @default(autoincrement()) @map("Id")
+  name      String  @map("Naziv")
+  seats     Int     @map("BrojMjesta")
+  theaterId Int     @map("KazalisteId")
+  theater   Theater @relation(fields: [theaterId], references: [id])
+  events    Event[]
+
+  @@map("Dvorana")
+}
+
+model Event {
+  id           Int           @id @default(autoincrement()) @map("Id")
+  title        String        @map("Naziv")
+  description  String?       @map("Opis")
+  dateTime     DateTime      @map("DatumVrijeme")
+  duration     Int           @map("Trajanje")
+  price        Float         @map("Cijena")
+  totalSeats   Int           @map("UkupnoMjesta")
+  imageUrl     String?       @map("SlikaUrl")
+  hallId       Int           @map("DvoranaId")
+  hall         Hall          @relation(fields: [hallId], references: [id])
+  reservations Reservation[]
+  reviews      Review[]
+
+  @@map("Dogadaj")
+}
+
+model Reservation {
+  id              Int      @id @default(autoincrement()) @map("Id")
+  numberOfTickets Int      @map("BrojKarata")
+  totalPrice      Float    @map("UkupnaCijena")
+  status          String   @default("confirmed") @map("Status")
+  createdAt       DateTime @default(now()) @map("KreiranoU")
+  userId          Int      @map("KorisnikId")
+  eventId         Int      @map("DogadajId")
+  user            User     @relation(fields: [userId], references: [id])
+  event           Event    @relation(fields: [eventId], references: [id])
+
+  @@map("Rezervacija")
+}
+
+model Review {
+  id        Int      @id @default(autoincrement()) @map("Id")
+  rating    Int      @map("Ocjena")
+  comment   String?  @map("Komentar")
+  createdAt DateTime @default(now()) @map("KreiranoU")
+  userId    Int      @map("KorisnikId")
+  eventId   Int      @map("DogadajId")
+  user      User     @relation(fields: [userId], references: [id])
+  event     Event    @relation(fields: [eventId], references: [id])
+
+  @@map("Recenzija")
+}
