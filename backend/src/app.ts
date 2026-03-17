@@ -7,6 +7,7 @@ import { env } from "./config/env";
 import { logger } from "./utils/logger";
 import { globalLimiter } from "./middleware/rateLimiter";
 import { errorMiddleware } from "./middleware/error.middleware";
+import authRoutes from "./routes/auth.routes";
 
 const app = express();
 
@@ -23,7 +24,8 @@ app.get("/api/health", (_req, res) => {
   res.json({ status: "ok", timestamp: new Date().toISOString() });
 });
 
-// Routes will be mounted here in Phase 1+
+// Routes
+app.use("/api/auth", authRoutes);
 
 // Global error handler (MUST be last)
 app.use(errorMiddleware);
