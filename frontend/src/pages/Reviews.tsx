@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react'
-import { mockReviews, mockEvents } from '../lib/mockData'
 import { useAuthStore } from '../store/authStore'
 import toast from 'react-hot-toast'
-import type { Review } from '../types'
+import api from '../lib/axios'
+import type { Review, Event } from '../types'
 
 type Tab = 'mine' | 'all'
 
@@ -49,11 +49,25 @@ function StarRating({
 export default function Reviews() {
   const [loading, setLoading] = useState(true)
   const user = useAuthStore((s) => s.user)
-  const [reviews, setReviews] = useState<Review[]>(mockReviews)
+  const [reviews, setReviews] = useState<Review[]>([])
+  const [events, setEvents] = useState<Event[]>([])
 
   useEffect(() => {
-    const t = setTimeout(() => setLoading(false), 350)
-    return () => clearTimeout(t)
+    async function fetchData() {
+      try {
+        const [reviewsRes, eventsRes] = await Promise.all([
+          api.get('/reviews'),
+          api.get('/events?limit=50'),
+        ])
+        setReviews(reviewsRes.data)
+        setEvents(eventsRes.data.data)
+      } catch {
+        // handled by axios interceptor
+      } finally {
+        setLoading(false)
+      }
+    }
+    fetchData()
   }, [])
   const [tab, setTab] = useState<Tab>('all')
   const [showForm, setShowForm] = useState(false)
@@ -64,39 +78,38 @@ export default function Reviews() {
   const myReviews = reviews.filter((r) => r.userId === user?.id)
   const displayed = tab === 'mine' ? myReviews : reviews
 
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     if (!formEventId) return toast.error('Odaberite događaj.')
     if (formRating === 0) return toast.error('Odaberite ocjenu.')
 
-    const event = mockEvents.find((ev) => ev.id === formEventId)
-    if (!event) return
-
-    const newReview: Review = {
-      id: String(Date.now()),
-      userId: user?.id || '1',
-      userName: user ? `${user.firstName} ${user.lastName}` : 'Korisnik',
-      userEmail: user?.email || '',
-      eventId: formEventId,
-      eventTitle: event.title,
-      theaterName: event.theaterName,
-      rating: formRating,
-      comment: formComment || undefined,
-      createdAt: new Date().toISOString(),
+    try {
+      const { data: newReview } = await api.post('/reviews', {
+        eventId: Number(formEventId),
+        rating: formRating,
+        comment: formComment || undefined,
+      })
+      setReviews((prev) => [newReview, ...prev])
+      setShowForm(false)
+      setFormRating(0)
+      setFormComment('')
+      setFormEventId('')
+      toast.success('Recenzija je objavljena!')
+    } catch (err: any) {
+      const message = err.response?.data?.error?.message || 'Greška pri objavi recenzije.'
+      toast.error(message)
     }
-
-    setReviews((prev) => [newReview, ...prev])
-    setShowForm(false)
-    setFormRating(0)
-    setFormComment('')
-    setFormEventId('')
-    toast.success('Recenzija je objavljena!')
   }
 
-  function handleDelete(id: string) {
+  async function handleDelete(id: string) {
     if (!window.confirm('Jeste li sigurni da želite obrisati ovu recenziju?')) return
-    setReviews((prev) => prev.filter((r) => r.id !== id))
-    toast.success('Recenzija je obrisana.')
+    try {
+      await api.delete(`/reviews/${id}`)
+      setReviews((prev) => prev.filter((r) => r.id !== id))
+      toast.success('Recenzija je obrisana.')
+    } catch {
+      toast.error('Greška pri brisanju recenzije.')
+    }
   }
 
   const tabs: { key: Tab; label: string }[] = [
@@ -146,7 +159,7 @@ export default function Reviews() {
                 className="mt-1 w-full rounded-sm border border-border bg-base-light px-3 py-2 text-sm text-text-primary outline-none focus:border-gold"
               >
                 <option value="">Odaberite događaj...</option>
-                {mockEvents.map((ev) => (
+                {events.map((ev) => (
                   <option key={ev.id} value={ev.id}>
                     {ev.title} — {ev.theaterName}
                   </option>
