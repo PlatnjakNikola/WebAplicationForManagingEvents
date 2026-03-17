@@ -9,6 +9,7 @@ import { globalLimiter } from "./middleware/rateLimiter";
 import { errorMiddleware } from "./middleware/error.middleware";
 import authRoutes from "./routes/auth.routes";
 import theaterRoutes from "./routes/theater.routes";
+import eventRoutes from "./routes/event.routes";
 
 const app = express();
 
@@ -28,6 +29,7 @@ app.get("/api/health", (_req, res) => {
 // Routes
 app.use("/api/auth", authRoutes);
 app.use("/api/theaters", theaterRoutes);
+app.use("/api/events", eventRoutes);
 
 // Global error handler (MUST be last)
 app.use(errorMiddleware);
