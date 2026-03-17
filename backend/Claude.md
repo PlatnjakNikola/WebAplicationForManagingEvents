@@ -853,7 +853,7 @@ services:
     image: mcr.microsoft.com/azure-sql-edge
     environment:
       ACCEPT_EULA: "Y"
-      MSSQL_SA_PASSWORD: "YourStrong!Password123"
+      MSSQL_SA_PASSWORD: "StrongPassword123"
     ports:
       - "1433:1433"
     volumes:
@@ -869,7 +869,7 @@ volumes:
 ```
 NODE_ENV=development
 PORT=3000
-DATABASE_URL="sqlserver://localhost:1433;database=TheatrumDB;user=sa;password=YourStrong!Password123;trustServerCertificate=true"
+DATABASE_URL="sqlserver://localhost:1433;database=TheatrumDB;user=sa;password=StrongPassword123;trustServerCertificate=true"
 JWT_SECRET="change-this-to-a-random-32-char-string-minimum"
 CORS_ORIGIN="http://localhost:5173"
 ```
