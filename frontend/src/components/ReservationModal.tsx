@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import type { Event } from '../types'
 import toast from 'react-hot-toast'
+import api from '../lib/axios'
 
 interface ReservationModalProps {
   event: Event | null
@@ -57,12 +58,20 @@ export default function ReservationModal({ event, onClose, onConfirm }: Reservat
 
   const handleSubmit = async () => {
     setIsSubmitting(true)
-    // Simulate API call
-    await new Promise((r) => setTimeout(r, 1000))
-    setIsSubmitting(false)
-    onConfirm?.(event.id, tickets)
-    onClose()
-    toast.success(`Rezervirano ${tickets} ${tickets === 1 ? 'karta' : 'karata'} za "${event.title}"`)
+    try {
+      await api.post('/reservations', {
+        eventId: Number(event.id),
+        numberOfTickets: tickets,
+      })
+      onConfirm?.(event.id, tickets)
+      onClose()
+      toast.success(`Rezervirano ${tickets} ${tickets === 1 ? 'karta' : 'karata'} za "${event.title}"`)
+    } catch (err: any) {
+      const message = err.response?.data?.error?.message || 'Greška pri rezervaciji.'
+      toast.error(message)
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   return (

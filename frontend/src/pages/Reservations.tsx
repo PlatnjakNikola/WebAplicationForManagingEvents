@@ -1,19 +1,28 @@
 import { useState, useEffect } from 'react'
-import { mockReservations } from '../lib/mockData'
 import toast from 'react-hot-toast'
+import api from '../lib/axios'
 import type { Reservation } from '../types'
 
 type FilterStatus = 'all' | 'confirmed' | 'cancelled'
 
 export default function Reservations() {
   const [loading, setLoading] = useState(true)
-  const [reservations, setReservations] = useState<Reservation[]>(mockReservations)
+  const [reservations, setReservations] = useState<Reservation[]>([])
   const [filter, setFilter] = useState<FilterStatus>('all')
   const [expandedId, setExpandedId] = useState<string | null>(null)
 
   useEffect(() => {
-    const t = setTimeout(() => setLoading(false), 350)
-    return () => clearTimeout(t)
+    async function fetchReservations() {
+      try {
+        const { data } = await api.get('/reservations')
+        setReservations(data)
+      } catch {
+        // handled by axios interceptor
+      } finally {
+        setLoading(false)
+      }
+    }
+    fetchReservations()
   }, [])
 
   const filtered = reservations
@@ -26,13 +35,18 @@ export default function Reservations() {
     cancelled: reservations.filter((r) => r.status === 'cancelled').length,
   }
 
-  function handleCancel(id: string) {
+  async function handleCancel(id: string) {
     if (!window.confirm('Jeste li sigurni da želite otkazati ovu rezervaciju?')) return
-    setReservations((prev) =>
-      prev.map((r) => (r.id === id ? { ...r, status: 'cancelled' as const } : r))
-    )
-    setExpandedId(null)
-    toast.success('Rezervacija je otkazana.')
+    try {
+      await api.patch(`/reservations/${id}/cancel`)
+      setReservations((prev) =>
+        prev.map((r) => (r.id === id ? { ...r, status: 'cancelled' as const } : r))
+      )
+      setExpandedId(null)
+      toast.success('Rezervacija je otkazana.')
+    } catch {
+      toast.error('Greška pri otkazivanju rezervacije.')
+    }
   }
 
   const filters: { key: FilterStatus; label: string }[] = [
