@@ -1,14 +1,25 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
-import { mockTheaters } from '../lib/mockData'
 import { SkeletonCard } from '../components/Skeleton'
+import api from '../lib/axios'
+import type { Theater } from '../types'
 
 export default function Theaters() {
   const [loading, setLoading] = useState(true)
+  const [theaters, setTheaters] = useState<Theater[]>([])
 
   useEffect(() => {
-    const t = setTimeout(() => setLoading(false), 350)
-    return () => clearTimeout(t)
+    async function fetchTheaters() {
+      try {
+        const { data } = await api.get('/theaters')
+        setTheaters(data)
+      } catch {
+        // handled by axios interceptor
+      } finally {
+        setLoading(false)
+      }
+    }
+    fetchTheaters()
   }, [])
 
   return (
@@ -16,14 +27,14 @@ export default function Theaters() {
       <div className="mb-8">
         <h1 className="font-display text-3xl font-bold text-gold md:text-4xl">Kazališta</h1>
         <p className="mt-1 text-sm text-text-muted">
-          {mockTheaters.length} kazališta
+          {theaters.length} kazališta
         </p>
       </div>
 
       <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
         {loading
           ? Array.from({ length: 4 }).map((_, i) => <SkeletonCard key={i} />)
-          : mockTheaters.map((theater, i) => (
+          : theaters.map((theater, i) => (
           <div key={theater.id} className="animate-stagger-in" style={{ animationDelay: `${i * 80}ms` }}>
           <Link
             to={`/theaters/${theater.id}`}

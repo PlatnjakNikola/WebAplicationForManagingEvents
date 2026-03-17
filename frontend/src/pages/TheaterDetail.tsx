@@ -1,15 +1,39 @@
 import { useParams, Link } from 'react-router-dom'
-import { mockTheaters, mockEvents } from '../lib/mockData'
 import EventCard from '../components/EventCard'
 import ReservationModal from '../components/ReservationModal'
-import { useState } from 'react'
-import type { Event } from '../types'
+import { useState, useEffect } from 'react'
+import api from '../lib/axios'
+import type { Event, Theater } from '../types'
 
 export default function TheaterDetail() {
   const { id } = useParams<{ id: string }>()
-  const theater = mockTheaters.find((t) => t.id === id)
-  const theaterEvents = mockEvents.filter((e) => e.theaterId === id)
+  const [theater, setTheater] = useState<Theater | null>(null)
+  const [theaterEvents, setTheaterEvents] = useState<Event[]>([])
+  const [loading, setLoading] = useState(true)
   const [reserveEvent, setReserveEvent] = useState<Event | null>(null)
+
+  useEffect(() => {
+    async function fetchTheater() {
+      try {
+        const { data } = await api.get(`/theaters/${id}`)
+        setTheater(data)
+        setTheaterEvents(data.events ?? [])
+      } catch {
+        // handled by axios interceptor
+      } finally {
+        setLoading(false)
+      }
+    }
+    fetchTheater()
+  }, [id])
+
+  if (loading) {
+    return (
+      <div className="mx-auto max-w-7xl px-5 py-20 text-center md:px-8">
+        <div className="h-8 w-48 mx-auto rounded bg-surface animate-pulse" />
+      </div>
+    )
+  }
 
   if (!theater) {
     return (
