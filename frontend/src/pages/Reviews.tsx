@@ -56,7 +56,7 @@ export default function Reviews() {
     async function fetchData() {
       try {
         const [reviewsRes, eventsRes] = await Promise.all([
-          api.get('/reviews'),
+          api.get('/reviews/all'),
           api.get('/events?limit=50'),
         ])
         setReviews(reviewsRes.data)

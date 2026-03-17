@@ -8,6 +8,7 @@ import * as reviewController from "../controllers/review.controller";
 const router = Router();
 
 // User routes
+router.get("/all", authenticate, reviewController.getAll);
 router.get("/", authenticate, reviewController.getByUser);
 router.post("/", authenticate, validate(createReviewSchema), reviewController.create);
 router.delete("/:id", authenticate, reviewController.remove);

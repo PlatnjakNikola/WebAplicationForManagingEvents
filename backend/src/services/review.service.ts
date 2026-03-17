@@ -13,6 +13,14 @@ const reviewInclude = {
   },
 } satisfies Prisma.ReviewInclude;
 
+export async function getAll() {
+  const reviews = await prisma.review.findMany({
+    include: reviewInclude,
+    orderBy: { createdAt: "desc" },
+  });
+  return reviews.map(toReviewResponse);
+}
+
 export async function getByUser(userId: number) {
   const reviews = await prisma.review.findMany({
     where: { userId },

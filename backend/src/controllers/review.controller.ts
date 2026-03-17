@@ -2,6 +2,15 @@ import { Request, Response, NextFunction } from "express";
 import * as reviewService from "../services/review.service";
 import type { CreateReviewInput } from "../validators/review.schema";
 
+export async function getAll(_req: Request, res: Response, next: NextFunction) {
+  try {
+    const reviews = await reviewService.getAll();
+    res.json(reviews);
+  } catch (err) {
+    next(err);
+  }
+}
+
 export async function getByUser(req: Request, res: Response, next: NextFunction) {
   try {
     const reviews = await reviewService.getByUser(req.user!.sub);
