@@ -5,7 +5,7 @@ import type { EventQuery } from "../validators/query.schema";
 
 export async function getAll(req: Request, res: Response, next: NextFunction) {
   try {
-    const result = await eventService.getAll(req.query as unknown as EventQuery);
+    const result = await eventService.getAll((req as any).parsedQuery as EventQuery);
     res.json(result);
   } catch (err) {
     next(err);

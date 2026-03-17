@@ -4,7 +4,11 @@ import { ZodSchema } from "zod";
 export function validate(schema: ZodSchema, source: "body" | "query" = "body") {
   return (req: Request, _res: Response, next: NextFunction): void => {
     const parsed = schema.parse(req[source]);
-    req[source] = parsed;
+    if (source === "body") {
+      req.body = parsed;
+    } else {
+      (req as any).parsedQuery = parsed;
+    }
     next();
   };
 }
