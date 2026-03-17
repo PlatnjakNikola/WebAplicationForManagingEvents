@@ -11,6 +11,7 @@ import authRoutes from "./routes/auth.routes";
 import theaterRoutes from "./routes/theater.routes";
 import eventRoutes from "./routes/event.routes";
 import reservationRoutes from "./routes/reservation.routes";
+import reviewRoutes from "./routes/review.routes";
 
 const app = express();
 
@@ -32,6 +33,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/theaters", theaterRoutes);
 app.use("/api/events", eventRoutes);
 app.use("/api/reservations", reservationRoutes);
+app.use("/api/reviews", reviewRoutes);
 
 // Global error handler (MUST be last)
 app.use(errorMiddleware);
