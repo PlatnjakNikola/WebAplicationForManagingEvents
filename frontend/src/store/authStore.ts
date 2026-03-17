@@ -39,9 +39,10 @@ export const useAuthStore = create<AuthState>((set) => ({
   login: async (email, password) => {
     try {
       const { data } = await api.post('/auth/login', { email, password })
-      const { token, user } = data as { token: string; user: User }
+      const { token, refreshToken, user } = data as { token: string; refreshToken: string; user: User }
 
       localStorage.setItem('token', token)
+      localStorage.setItem('refreshToken', refreshToken)
       localStorage.setItem('user', JSON.stringify(user))
       set({ user, token, isAuthenticated: true })
 
@@ -64,6 +65,7 @@ export const useAuthStore = create<AuthState>((set) => ({
 
   logout: () => {
     localStorage.removeItem('token')
+    localStorage.removeItem('refreshToken')
     localStorage.removeItem('user')
     set({ user: null, token: null, isAuthenticated: false })
   },

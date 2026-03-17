@@ -63,10 +63,50 @@ export async function login(input: LoginInput): Promise<LoginResponse> {
   const token = jwt.sign(
     { sub: user.id, role: user.role },
     env.JWT_SECRET,
-    { expiresIn: "24h" }
+    { expiresIn: "15m" }
   );
 
-  return { token, user: toUserResponse(user) };
+  const refreshToken = jwt.sign(
+    { sub: user.id, type: "refresh" },
+    env.JWT_SECRET,
+    { expiresIn: "7d" }
+  );
+
+  return { token, refreshToken, user: toUserResponse(user) };
+}
+
+export async function refresh(refreshToken: string): Promise<{ token: string; refreshToken: string }> {
+  try {
+    const payload = jwt.verify(refreshToken, env.JWT_SECRET) as { sub: number; type?: string };
+    if (payload.type !== "refresh") {
+      throw new AppError(401, "UNAUTHORIZED", "Invalid refresh token");
+    }
+
+    const user = await prisma.user.findUnique({
+      where: { id: payload.sub },
+      select: { id: true, role: true },
+    });
+    if (!user) {
+      throw new AppError(401, "UNAUTHORIZED", "User not found");
+    }
+
+    const newToken = jwt.sign(
+      { sub: user.id, role: user.role },
+      env.JWT_SECRET,
+      { expiresIn: "15m" }
+    );
+
+    const newRefreshToken = jwt.sign(
+      { sub: user.id, type: "refresh" },
+      env.JWT_SECRET,
+      { expiresIn: "7d" }
+    );
+
+    return { token: newToken, refreshToken: newRefreshToken };
+  } catch (err) {
+    if (err instanceof AppError) throw err;
+    throw new AppError(401, "UNAUTHORIZED", "Invalid or expired refresh token");
+  }
 }
 
 export async function getMe(userId: number): Promise<UserResponse> {

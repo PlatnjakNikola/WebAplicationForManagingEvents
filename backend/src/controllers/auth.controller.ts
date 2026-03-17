@@ -20,6 +20,20 @@ export async function login(req: Request, res: Response, next: NextFunction) {
   }
 }
 
+export async function refresh(req: Request, res: Response, next: NextFunction) {
+  try {
+    const { refreshToken } = req.body as { refreshToken: string };
+    if (!refreshToken) {
+      res.status(400).json({ error: { code: "VALIDATION_ERROR", message: "Refresh token is required" } });
+      return;
+    }
+    const result = await authService.refresh(refreshToken);
+    res.json(result);
+  } catch (err) {
+    next(err);
+  }
+}
+
 export async function getMe(req: Request, res: Response, next: NextFunction) {
   try {
     const user = await authService.getMe(req.user!.sub);
