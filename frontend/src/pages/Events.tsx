@@ -3,18 +3,32 @@ import EventCard from '../components/EventCard'
 import EventDetailModal from '../components/EventDetailModal'
 import ReservationModal from '../components/ReservationModal'
 import { SkeletonCard } from '../components/Skeleton'
-import { mockEvents, mockTheaters } from '../lib/mockData'
-import type { Event } from '../types'
+import api from '../lib/axios'
+import type { Event, Theater } from '../types'
 
 const ITEMS_PER_PAGE = 6
 
 export default function Events() {
   const [loading, setLoading] = useState(true)
-  const [events, setEvents] = useState<Event[]>(mockEvents)
+  const [events, setEvents] = useState<Event[]>([])
+  const [theaters, setTheaters] = useState<Theater[]>([])
 
   useEffect(() => {
-    const t = setTimeout(() => setLoading(false), 350)
-    return () => clearTimeout(t)
+    async function fetchData() {
+      try {
+        const [eventsRes, theatersRes] = await Promise.all([
+          api.get('/events?limit=50'),
+          api.get('/theaters'),
+        ])
+        setEvents(eventsRes.data.data)
+        setTheaters(theatersRes.data)
+      } catch {
+        // handled by axios interceptor
+      } finally {
+        setLoading(false)
+      }
+    }
+    fetchData()
   }, [])
 
   // Filters
@@ -144,7 +158,7 @@ export default function Events() {
                 className="w-full rounded-sm border border-border-strong bg-base-light px-3 py-2 text-sm text-text-primary outline-none transition-colors focus:border-gold/50"
               >
                 <option value="">Sva kazališta</option>
-                {mockTheaters.map((t) => (
+                {theaters.map((t) => (
                   <option key={t.id} value={t.id}>
                     {t.name}
                   </option>
@@ -262,7 +276,7 @@ export default function Events() {
                 className="w-full rounded-sm border border-border-strong bg-surface px-4 py-3 text-sm text-text-primary outline-none focus:border-gold/50"
               >
                 <option value="">Sva kazališta</option>
-                {mockTheaters.map((t) => (
+                {theaters.map((t) => (
                   <option key={t.id} value={t.id}>
                     {t.name}
                   </option>
