@@ -8,6 +8,7 @@ import { logger } from "./utils/logger";
 import { globalLimiter } from "./middleware/rateLimiter";
 import { errorMiddleware } from "./middleware/error.middleware";
 import authRoutes from "./routes/auth.routes";
+import theaterRoutes from "./routes/theater.routes";
 
 const app = express();
 
@@ -26,6 +27,7 @@ app.get("/api/health", (_req, res) => {
 
 // Routes
 app.use("/api/auth", authRoutes);
+app.use("/api/theaters", theaterRoutes);
 
 // Global error handler (MUST be last)
 app.use(errorMiddleware);
