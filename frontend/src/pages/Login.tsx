@@ -20,11 +20,6 @@ export default function Login() {
   const [isLoading, setIsLoading] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
 
-  // Bug 6: Redirect if already logged in
-  if (isAuthenticated) {
-    return <Navigate to={user?.role === 'admin' ? '/admin/events' : '/events'} replace />
-  }
-
   const {
     register,
     handleSubmit,
@@ -34,6 +29,10 @@ export default function Login() {
     resolver: zodResolver(loginSchema),
     mode: 'onBlur',
   })
+
+  if (isAuthenticated) {
+    return <Navigate to={user?.role === 'admin' ? '/admin/events' : '/events'} replace />
+  }
 
   const onSubmit = async (data: LoginForm) => {
     setIsLoading(true)
