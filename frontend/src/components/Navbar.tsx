@@ -25,11 +25,9 @@ export default function Navbar() {
   const links = isAdmin ? adminLinks : userLinks
 
   // Close menu on route change
-  const [prevPathname, setPrevPathname] = useState(location.pathname)
-  if (location.pathname !== prevPathname) {
-    setPrevPathname(location.pathname)
-    if (isOpen) setIsOpen(false)
-  }
+  useEffect(() => {
+    setIsOpen(false)
+  }, [location.pathname])
 
   // Prevent body scroll when menu is open
   useEffect(() => {

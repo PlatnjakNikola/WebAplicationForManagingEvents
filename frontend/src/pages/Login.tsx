@@ -193,6 +193,20 @@ export default function Login() {
               Registrirajte se
             </Link>
           </p>
+
+          <div className="mt-6 rounded-sm border border-border bg-base-light p-4">
+            <p className="mb-3 text-xs font-semibold uppercase tracking-wider text-text-muted">Testni računi</p>
+            <div className="space-y-2 text-sm">
+              <div className="flex items-start justify-between gap-2">
+                <span className="text-text-muted">User:</span>
+                <span className="text-right text-text-secondary">user@theatrum.hr / User1234</span>
+              </div>
+              <div className="flex items-start justify-between gap-2">
+                <span className="text-text-muted">Admin:</span>
+                <span className="text-right text-text-secondary">admin@theatrum.hr / Admin1234</span>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>

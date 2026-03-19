@@ -26,10 +26,10 @@ async function main() {
 
   const ana = await prisma.user.create({
     data: {
-      email: "ana.horvat@theatrum.hr",
+      email: "user@theatrum.hr",
       password: userPassword,
-      firstName: "Ana",
-      lastName: "Horvat",
+      firstName: "User",
+      lastName: "User",
       role: "user",
     },
   });
