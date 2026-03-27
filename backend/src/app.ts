@@ -7,6 +7,7 @@ import { env } from "./config/env";
 import { logger } from "./utils/logger";
 import { globalLimiter } from "./middleware/rateLimiter";
 import { errorMiddleware } from "./middleware/error.middleware";
+import { prisma } from "./config/prisma";
 import authRoutes from "./routes/auth.routes";
 import theaterRoutes from "./routes/theater.routes";
 import eventRoutes from "./routes/event.routes";
@@ -23,8 +24,12 @@ app.use(express.json({ limit: "1mb" }));
 app.use(compression());
 app.use(pinoHttp({ logger }));
 
-// Health check
-app.get("/api/health", (_req, res) => {
+// Health check — also wakes up DB from cold start
+app.get("/api/health", async (_req, res) => {
+  const timeout = new Promise<never>((_, reject) =>
+    setTimeout(() => reject(new Error("DB timeout")), 5000)
+  );
+  await Promise.race([prisma.$queryRaw`SELECT 1`, timeout]);
   res.json({ status: "ok", timestamp: new Date().toISOString() });
 });
 
