@@ -24,7 +24,12 @@ app.use(express.json({ limit: "1mb" }));
 app.use(compression());
 app.use(pinoHttp({ logger }));
 
-// Health check — also wakes up DB from cold start
+// Lightweight ping — keeps backend alive, no DB (for cron job)
+app.get("/api/ping", (_req, res) => {
+  res.json({ status: "ok" });
+});
+
+// Health check — also wakes up DB from cold start (called from login page)
 app.get("/api/health", async (_req, res) => {
   const timeout = new Promise<never>((_, reject) =>
     setTimeout(() => reject(new Error("DB timeout")), 5000)
